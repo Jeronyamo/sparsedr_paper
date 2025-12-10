@@ -1,0 +1,1 @@
+The repository for the IJCAI-ECAI 2026's paper "Differentiable rendering of sparse SDFs".

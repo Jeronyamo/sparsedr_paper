@@ -1,0 +1,164 @@
+%%%% ijcai26.tex
+
+\typeout{IJCAI--ECAI 26 Instructions for Authors}
+
+% These are the instructions for authors for IJCAI--ECAI 26.
+
+\documentclass{article}
+\pdfpagewidth=8.5in
+\pdfpageheight=11in
+
+% The file ijcai26.sty is a copy from ijcai22.sty
+% The file ijcai22.sty is NOT the same as previous years'
+\usepackage{ijcai26}
+
+% Use the postscript times font!
+\usepackage{times}
+\usepackage{soul}
+\usepackage{url}
+\usepackage[hidelinks]{hyperref}
+\usepackage[utf8]{inputenc}
+\usepackage[small]{caption}
+\usepackage{graphicx}
+\usepackage{amsmath}
+\usepackage{amsthm}
+\usepackage{booktabs}
+\usepackage{algorithm}
+\usepackage{algorithmic}
+\usepackage[switch]{lineno}
+
+% Comment out this line in the camera-ready submission
+\linenumbers
+
+\urlstyle{same}
+
+% the following package is optional:
+%\usepackage{latexsym}
+
+% See https://www.overleaf.com/learn/latex/theorems_and_proofs
+% for a nice explanation of how to define new theorems, but keep
+% in mind that the amsthm package is already included in this
+% template and that you must *not* alter the styling.
+\newtheorem{example}{Example}
+\newtheorem{theorem}{Theorem}
+
+% Following comment is from ijcai97-submit.tex:
+% The preparation of these files was supported by Schlumberger Palo Alto
+% Research, AT\&T Bell Laboratories, and Morgan Kaufmann Publishers.
+% Shirley Jowell, of Morgan Kaufmann Publishers, and Peter F.
+% Patel-Schneider, of AT\&T Bell Laboratories collaborated on their
+% preparation.
+
+% These instructions can be modified and used in other conferences as long
+% as credit to the authors and supporting agencies is retained, this notice
+% is not changed, and further modification or reuse is not restricted.
+% Neither Shirley Jowell nor Peter F. Patel-Schneider can be listed as
+% contacts for providing assistance without their prior permission.
+
+% To use for other conferences, change references to files and the
+% conference appropriate and use other authors, contacts, publishers, and
+% organizations.
+% Also change the deadline and address for returning papers and the length and
+% page charge instructions.
+% Put where the files are available in the appropriate places.
+
+
+% PDF Info Is REQUIRED.
+
+% Please leave this \pdfinfo block untouched both for the submission and
+% Camera Ready Copy. Do not include Title and Author information in the pdfinfo section
+\pdfinfo{
+/TemplateVersion (IJCAI.2026.0)
+}
+
+\title{Differentiable Rendering of Sparse SDFs}
+
+% Single author syntax
+% \author{
+%     Author Name
+%     \affiliations
+%     Affiliation
+%     \emails
+%     email@example.com
+% }
+
+% Multiple author syntax (remove the single-author syntax above and the \iffalse ... \fi here)
+% \iffalse
+\author{
+First Author$^1$
+\and
+Second Author$^2$\and
+Third Author$^{2,3}$\And
+Fourth Author$^4$\\
+\affiliations
+$^1$First Affiliation\\
+$^2$Second Affiliation\\
+$^3$Third Affiliation\\
+$^4$Fourth Affiliation\\
+\emails % usually included
+\{first, second\}@example.com,
+third@other.example.com,
+fourth@example.com
+}
+% \fi
+
+\begin{document}
+
+\maketitle
+
+\begin{abstract}
+    % 3D реконструкция получила заметное развитие в последнее десятилетие с появлением
+    % дифференцируемого рендеринга -- мощного инструмента, породившего большое разнообразие
+    % методов. Одна группа методов направлена на восстановление объектов, представленных
+    % SDF сетками, в рамках физически-обоснованного рендеринга. Большим недостатком
+    % такого подхода является быстрый рост потребляемой памяти при восстановлении моделей
+    % с fine details. В этой работе мы предлагаем адаптацию метода дифференцируемого
+    % рендеринга SDF под разреженное представление, с разреженными версиями редистансинга
+    % и регуляризации. Благодаря этому, мы получаем сокращение используемой памяти и
+    % более точное восстановление геометрии объектов.
+
+    3D reconstruction has achieved notable development over the past decade with the emergence of differentiable rendering -- a powerful tool that has spawned a wide variety of methods. One group of methods is aimed at reconstructing objects represented by SDF grids within the framework of physically-based rendering. A major drawback of such an approach is the rapid growth of memory consumption when reconstructing models with fine details. In this work, we propose an adaptation of the differentiable rendering method for SDF to a sparse representation, with sparse versions of redistancing and regularization. Through this, we achieve a reduction in memory usage and more accurate reconstruction of object geometry.
+\end{abstract}
+
+\section{Introduction}
+    3D object reconstruction as (something else and then) Inverse rendering.
+    % Задача трёхмерной реконструкции 
+
+    Inverse rendering to Differentiable rendering.
+    % В последнее десятилетие для решения задачи обратного рендеринга активно
+    % используется дифференцируемый рендеринг -- метод, восстанавливающий объекты
+    % по изображениям с использованием градиентных методов оптимизации.
+
+    DR methods for physically-based rendering.
+
+    This method.
+
+\section{Related Work}
+\subsection{Sparse SDF Representations}
+
+    Tell about SDFs, grids, then (2022 article about SVS/SBS/etc.).
+    This method uses SBS.
+
+\subsection{Differentiable SDF Rendering}
+
+    Tell a bit about meshes and Nicolet article, then about two nonNN methods (2022,2024). Also tell about modifications. 
+
+\subsubsection{Order of Sections}
+
+Sections should be arranged in the following order \cite{bgf:Lixto}:
+\begin{enumerate}
+    \item Main content sections (numbered)
+    \item Appendices (optional, numbered using capital letters)
+    \item Ethical statement (optional, unnumbered)
+    \item Acknowledgements (optional, unnumbered)
+    \item Contribution statement (optional, unnumbered)
+    \item References (required, unnumbered)
+\end{enumerate}
+
+
+%% The file named.bst is a bibliography style file for BibTeX 0.99c
+\bibliographystyle{named}
+\bibliography{sparsedr}
+
+\end{document}
+
