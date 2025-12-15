@@ -122,28 +122,43 @@ fourth@example.com
 
 \section{Introduction}
     3D object reconstruction as (something else and then) Inverse rendering.
-    % Задача трёхмерной реконструкции 
+    % Задача трёхмерной реконструкции -- получение информации об объекте реального
+    % мира, в частности его форме. (TODO: про 3д реконструкцию + подводка к обратному рендерингу)
+
+    % В рамках компьютерного зрения и графики ещё в конце XX века [ссылка] была сформулирована
+    % задача обратного рендеринга. Если традиционный, прямой рендеринг позволяет получить
+    % 2D изображение из 3D сцены, то обратный рендеринг подразумевает восстановление
+    % параметров исходной сцены по её изображениям. Таким образом, задача обратного рендеринга
+    % включает в себя трёхмерную реконструкцию.
 
     Inverse rendering to Differentiable rendering.
     % В последнее десятилетие для решения задачи обратного рендеринга активно
     % используется дифференцируемый рендеринг -- метод, восстанавливающий объекты
-    % по изображениям с использованием градиентных методов оптимизации.
+    % по изображениям с использованием градиентных методов оптимизации. Существует
+    % большое число разнообразных методов дифференцируемого рендеринга. Между собой
+    % они различаются, в первую очередь, тем, какое представление используется в процессе
+    % оптимизации: нейронные SDF [NeuralAngelo+], NeRF [ссылки], 3DGS [ссылки] (TODO: ещё что-нибудь).
 
-    DR methods for physically-based rendering.
+    DR methods for physically-based rendering. Tell a bit about meshes and Nicolet article, then about two nonNN methods (2022,2024).
+    % (TODO: Edge sampling). Следом появилось несколько методов, также применимых в физически-обоснованном
+    % рендеринге, которые использовали естественные для этой экосистемы меши и SDF в
+    % качестве оптимизируемого представления. Последние являются более подходящими для
+    % этой задачи, так как меши обладают рядом существенных недостатков [Nicolet].
 
-    This method.
-
-\section{Related Work}
-\subsection{Sparse SDF Representations}
-
-    Tell about SDFs, grids, then (2022 article about SVS/SBS/etc.).
+    This method. Tell about modifications. Tell about SDFs, grids, then (2022 article about SVS/SBS/etc.).
     This method uses SBS.
 
-\subsection{Differentiable SDF Rendering}
+\section{System architecture}
+    Describe architecture -- components (their algorithms).
 
-    Tell a bit about meshes and Nicolet article, then about two nonNN methods (2022,2024). Also tell about modifications. 
+    \subsection{Sparse SDF Representaiton}
 
-\subsubsection{Order of Sections}
+\section{Implementation}
+    Describe technical implementation. Comparisons also go here.
+
+     
+
+\subsection{Order of Sections}
 
 Sections should be arranged in the following order \cite{bgf:Lixto}:
 \begin{enumerate}
