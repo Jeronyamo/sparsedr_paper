@@ -130,15 +130,6 @@ fourth@example.com
 
 \section{Introduction}
 
-\begin{figure*}[h!]
-    \centering
-    \includegraphics[width=\textwidth,keepaspectratio]{figures/header.eps}
-    \caption{Comparison of SparseDR algorithm (on the right) with the baseline.
-             The key differences are using sparse SDF representation, SBS, and
-             intersecting voxels along the ray instead of sphere tracing.}
-    \label{fig:header}
-\end{figure*}
-
     Signed distance functions (SDFs) provide a continuous, implicit representation of
     geometry, defining the shortest Euclidean distance from any point in space to the
     nearest surface, with the sign indicating interior or exterior regions. This enables
@@ -161,86 +152,6 @@ fourth@example.com
               and its accelerated version specifically for the differentiable rendering of SBS.
     \end{itemize}
 
-    %%% 3D object reconstruction as (something else and then) Inverse rendering.
-    % Задача трёхмерной реконструкции -- получение информации об объекте реального
-    % мира, в частности его форме. (TODO: про 3д реконструкцию + подводка к обратному рендерингу)
-
-    % В рамках компьютерного зрения и графики ещё в конце XX века [ссылка] была сформулирована
-    % задача обратного рендеринга. Если традиционный, прямой рендеринг позволяет получить
-    % 2D изображение из 3D сцены, то обратный рендеринг подразумевает восстановление
-    % параметров исходной сцены по её изображениям. Таким образом, задача обратного рендеринга
-    % включает в себя трёхмерную реконструкцию.
-
-    %%% Inverse rendering to Differentiable rendering.
-    % В последнее десятилетие для решения задачи обратного рендеринга активно
-    % используется дифференцируемый рендеринг -- метод, восстанавливающий объекты
-    % по изображениям с использованием градиентных методов оптимизации. Существует
-    % большое число разнообразных методов дифференцируемого рендеринга. Между собой
-    % они различаются, в первую очередь, тем, какое представление используется в процессе
-    % оптимизации: нейронные SDF [NeuralAngelo+], NeRF [ссылки], 3DGS [ссылки] (TODO: ещё что-нибудь).
-
-    %%% DR methods for physically-based rendering. Tell a bit about meshes and Nicolet article, then about two nonNN methods (2022,2024).
-    % В 2018 году появился метод edge sampling [ссылка], впервые позволивший получить
-    % аналитические производные по параметрам геометрии, в частности меша, в физически-обоснованном
-    % рендеринге. В этих условиях цвет пикселя представляет собой интеграл. При дифференцировании
-    % по параметрам, задающим форму объекта, подынтегральное выражение терпит разрывы,
-    % положение которых зависит от этих параметров. Для корректного расчёта градиентов
-    % требуется оценить интеграл по этим разрывам, названный граничным интегралом. В edge
-    % sampling предлагалось явно семплировать граничный интеграл, что требовало нахождения
-    % всех граней, образующих силуэт объекта. В 2019
-    % и 2020 годах появились два связанных между собой метода, которые избавлялись от
-    % необходимости явного семплирования границ объекта при оценке производных. Первый
-    % подход, репараметризация [ссылка], предлагал замену переменных, которая локально
-    % учитывала разрывы, что позволяло уйти от оценки граничного интеграла вовсе. Метод
-    % 2020 года, warped area sampling (WAS) [ссылка], строго показал, что граничный
-    % интеграл в формуле производной возникает согласно транспортной теореме Рейнольдса,
-    % и предложил продлить область определения граничного интеграла на пространство с
-    % помощью теоремы Остроградского-Гаусса. Для этого перехода строится специальное 
-    % векторное поле.
-
-    % Три подхода к дифференцируемому рендерингу, описанные выше, использовали меши в практической 
-    % реализации. Однако, меши, с точки зрения задачи реконструкции поверхности, имеют ряд фундаментальных 
-    % проблем, которые делают их использование нежелательным. Их недостатки хорошо описаны и 
-    % проиллюстрированы в работе 2021 года [ссылка]. Фундаментальной проблемой мешей является 
-    % невозможность менять топологию объекта (род поверхности), также во время оптимизации могут возникать 
-    % необратимые самопересечения и неоптимальные распределения примитивов, из-за чего в местах, требующих 
-    % высокой детализации, нет достаточного числа примитивов для их представления. Модификации, 
-    % представленные в работе, частично решают две последние проблемы, но
-    % ограничение на топологию мешает свободному применению мешей для оптимизации.
-
-    % Следом появилось несколько методов, также применимых в физически-обоснованном
-    % рендеринге, которые использовали SDF grids в качестве оптимизируемого представления.
-    % В 2022 году к SDF впервые применили репараметризацию [ссылка]. В этой работе было
-    % предложено использовать алгоритм редистансинга. Редистансинг – задача пересчёта
-    % значений сетки, чтобы её вершины содержали корректные расстояния до поверхности. В
-    % дифференцируемом рендеринге пересчёт нужен, поскольку после шага оптимизации и 
-    % обновления расстояний в узлах сетки она, строго говоря, уже не является SDF. Наконец,
-    % метод 2024 года [ссылка] использует свойства функций расстояния и
-    % оценивает граничный интеграл интегралом по релаксированной границе – тонкой линии
-    % вокруг силуэта объекта.
-
-    % При использовании SDF grid повышение детализации модели для более точной реконструкции поверхности
-    % достигается путём апсемплинга всей сетки, что приводит к быстрому росту размера модели.
-    % При этом для представления самой поверхности используется лишь небольшая часть вокселей,
-    % и потребление памяти можно существенно снизить, если хранить только их. Статья [ссылка]
-    % описывает несколько вариантов основанных на SDF разреженных представлений, в частности sparse brick set.
-    % Данное представление представляет собой a sparse set of bricks -- small non-intersecting SDF grids.
-    % Каждый такой кирпич хранится в листовом узле дерева BVH. Также в статье предлагаются
-    % новые алгоритмы для пересечения луча с вокселем: метод Ньютона и аналитический метод.
-    % Оба основаны на факте, что внутри вокселя, в случае трилинейной интерполяции, функция
-    % расстояния вдоль луча представима кубическим полиномом. Отличие между ними заключается в
-    % поиске корней этого полинома: аналитическом расчёте или же нескольких шагах метода Ньютона.
-
-    %%% This method combines the idea of a relaxed boundary with the sparse SDF representation from [link].
-    % В данной работе представлена система SparseDR. Её принцип работы основан на методе
-    % дифференцируемого рендеринга SDF, сочетающем идею оценки граничного интеграла
-    % из [ссылка] с SBS. Для пересечения луча со сценой используется метод Ньютона, адаптированный
-    % под поиск точек релаксированной границы. Реализованы две версии редистансинга: разреженная
-    % версия fast sweeping метода и приближённая ускоренная версия, а также разреженные версии
-    % остальных этапов алгоритма. Добавлен sparsification step, отвечающий за удаление и
-    % добавление of bricks. В результате SparseDR способна восстанавливать модели со
-    % скоростью и точностью not inferior to the baseline method при существенном
-    % сокращении потребляемой памяти.
 
 \section{Related Work}
     
@@ -275,26 +186,17 @@ fourth@example.com
     and redistancing -- can be joined together in an efficient manner.
 
 
-\section{System Implementation}
-    %%% Describe architecture -- components (their algorithms).
-    % TODO: привести два алгоритма. Первый (внешний) показывает итерации по пресетам, между
-    % которыми происходит разрежение и апсемплинг. Второй (внутренний) вызывается внутри
-    % первого и содержит итерации дифф рендеринга. ПОСЛЕ попробовать показать, какие его
-    % шаги новые, какие претерпели изменения, а какие остались нетронутыми.
-
-    % Core differentiable rendering algorithm представляет собой
-    % метод обучения с учителем, в котором на каждой итерации происходит отрисовка сцены с
-    % ракурса, соответствующего одному из референсных изображений, после чего считается
-    % функция потерь (MSE) между двумя рендерами и backpropagates к параметрам сцены.
-    % Для корректного расчёта производных по дистанциям, следуя транспортной теореме Рейнольдса,
-    % оценивается внутренний и граничный интеграл. Для оценки последнего был реализован метод
-    % релаксированной границы из работы (ссылка), которая также является для нас базовой.
-    % Мы также применяем Laplace filter и редистансинг для более стабильной реконструкции.
-
-    % На рис. таком-то (псевдокодом) показан алгоритм работы SparseDR. В начале процесса оптимизации
-    % SBS хранит все брики, составляя грид размером 32x32x32 voxels, так как на этом этапе the grid itself небольшой,
-    % а поверхность объекта претерпевает наибольшие изменения. Затем, during the sparsification step сохраняются только
-    % брики, которые содержат поверхность, и их ближайшие соседи.
+\section{Implementation Details}
+\begin{figure}
+    \centering
+    \includegraphics[width=\columnwidth,keepaspectratio]{figures/header.eps}
+    \caption{Comparison of SparseDR algorithm with the baseline.
+             The baseline (on the left) uses dense SDF grid to represent the surface, and sphere
+             tracing for ray-scene intersection. SparseDR (on the right) uses Sparse Brick Set,
+             each brick stores small SDF grid, and a ray intersects each brick on its way
+             until it hits the surface. }
+    \label{fig:header}
+\end{figure}
 
     To store the surface, SparseDR uses the Sparse Brick Set (SBS) proposed in \cite{soderlund2022ray},
     which is a hybrid of hierarchical and regular representations, see Figure \ref{fig:header}. The entire scene is
@@ -316,39 +218,7 @@ fourth@example.com
     % Because of that, each time before the upsampling and at the end of optimization
     % we apply the sparsification step and redistance the entire SBS.
 
-\subsection{Gradient evaluation}
-
-    % Ключевым отличием метода в основе SparseDR является переход от SDF grid к
-    % sparse brick set. В нашем случае, размер каждого брика фиксирован
-    % и равен 4x4x4 voxels. Для SBS строится BVH tree, каждый листовой узел которого хранит один brick.
-    % Помимо sphere tracing [link], были реализованы альтернативные методы
-    % of ray-SDF intersection [link]: Newton and analytic, специально созданные для
-    % поиска пересечения inside the voxel. Теперь луч traverses the BVH first, и, если найдено
-    % пересечение с листовым узлом, intersects the voxels of the brick. Луч проходит каждый
-    % брик на своём пути, до первого пересечения с поверхностью.
-
-    % Alternative ray-SDF intersection methods also support поиск точек релаксированной
-    % границы. Из [ссылка], точка принадлежит релаксированной границе, если SDF в этой
-    % точке меньше некоторого порога, названного relaxed epsilon, а производная SDF along
-    % the ray reaches its local minimum.
-    % Newton and analytic methods are based on the fact that inside the voxel, SDF along
-    % the ray представима в виде полинома третьей степени. Таким образом, внутри вокселя
-    % потенциальная точка релаксированной границы может быть найдена как корень квадратного уравнения,
-    % после чего нужно лишь проверить, что значение SDF в ней меньше relaxed epsilon. Случай,
-    % когда локальный минимум достигается на границе вокселей или бриков, обрабатывается отдельно.
-
-    % SparseDR реализована с использованием C++ and Vulkan и не использует автоматическое
-    % дифференцирование. Градиенты аккумулируются в массив of floats, по размеру равный
-    % числу обновляемых дистанций. В шейдере при расчёте цвета пикселя для 16 семплов
-    % хранится информация о вокселях, в которые они попали, и каждые 16 семплов (или после последнего)
-    % градиенты добавляются в массив.
-
-    % SparseDR опционально использует дополнительный шейдер, который семплирует только
-    % пиксели, содержащие границы, и оценивает только граничный интеграл, без необходимости
-    % в расчёте цвета. Это адаптивное
-    % семплирование границы позволяет делать более дешёвые семплы и получить более
-    % точные градиенты для меньшего relaxed epsilon, reducing bias.
-
+\textbf{Gradient evaluation.}
     The key distinction of the method underlying SparseDR lies in the transition from an
     SDF grid to a sparse brick set. In our case, each brick has a fixed size of 4×4×4 voxels.
     For the SBS, a BVH tree is constructed, with each leaf node storing a single brick.
@@ -379,54 +249,18 @@ fourth@example.com
     computation. This adaptive boundary sampling allows cheaper samples and yields more
     accurate gradients for smaller relaxed epsilon values, thereby reducing bias.
 
-\subsection{Redistancing}
-
-\begin{figure}[h!]
+\begin{figure}
     \centering
     \includegraphics[width=\columnwidth,keepaspectratio]{figures/redistancing.eps}
-    \caption{Comparison of the redistancing algorithm (on the left) with the accelerated version.
-             Updating only the bricks with a surface is sufficient to get correct relaxed
-             boundary points, as the brick size is larger than the relaxed epsilon.}
+    \caption{Comparison of the redistancing algorithm (on the left) with the accelerated version
+             (on the right) with SBS bricks 2x2 voxels in size.
+             The dots represent the distance values. Red and blue dots are outside and inside the
+             object respectively. Strip line represents the surface, set by distances colored
+             white. Arrows show the order of updating the values. }
     \label{fig:redist}
 \end{figure}
 
-    % Для дифференцируемого рендеринга SBS в SparseDR реализовано две версии редистансинга.
-    % Первая версия является адаптацией параллельной версии fast sweeping method [link]
-    % для SBS. Для неё ребовалось решить проблему обновления дистанций
-    % через пространство без кирпичей. Представьте кирпич без соседей, в котором нет поверхности.
-    % Следуя алгоритму редистансинга, дистанции в нём будут проинициализированы некоторой
-    % константой и затем никогда не обновятся. В случае дифференцируемого рендеринга
-    % таких экстремальных случаев нет, но возможны ситуации, когда дистанции в брике
-    % имеют большие абсолютные значения, чем должны, так как не учтены дистанции
-    % брика неподалёку. Для решения этой проблемы был добавлен шаг экстраполяции значений
-    % между гранями бриков. Для каждой грани брика без непосредственного соседа
-    % находятся ближайшие соседи, у них выбирается одна грань, из которой будут
-    % экстраполироваться значения. Соседи выбираются один раз, затем после каждого
-    % шага of fast sweeping method значения экстраполируются с учётом расстояния
-    % между значениями сетки. Из экстраполированного значения и предыдущего выбирается
-    % минимальное по модулю. Чтобы распространить обновлённые дистанции, последним
-    % шагом всегда идёт fast sweeping method.
-
-    % Однако использование SBS instead of grid и метода Ньютона для поиска пересечения
-    % inside the voxel instead of sphere tracing позволило исследовать возможности
-    % для оптимизации редистансинга, результатом которых стала ускоренная версия,
-    % используемая во всех экспериментах. Первая идея заключается в использовании
-    % пересечения методом Ньютона в свою пользу. Так как луч проходит каждый воксель
-    % на своём пути, он не зависит от значений дистанций в вокселях без границы.
-    % поэтому для получения точного пересечения с поверхностью и точек релаксированной
-    % границы достаточно применять редистансинг только в бриках с поверхностью.
-    % Вторая идея заключается в предположении о том, что в бриках с поверхностью
-    % для пересчёта дистанций достаточно учитывать только ту поверхность, что хранится
-    % в этом брике, и не распространять дистанции между бриками. Это предположение
-    % подтвердилось частично, так как в редистансинге на этапе инициализации происходит
-    % пересчёт дистанций, задающих поверхность, и здесь важно получить наиболее точные
-    % значения. Однако после инициализации достаточно проводить редистансинг локально
-    % внутри бриков. На рис. Nn показан график MSE для итераций оптимизации модели
-    % бюста Nefertiti с использованием обеих версий редистансинга. Ускоренная версия
-    % не портит качество реконструкции и не мешает сходимости к референсу. After the
-    % sparsification step применяется первая версия редистансинга, которая рассчитывает
-    % все дистанции перед сохранением чекпоинта, чтобы модель являлась корректной SDF.
-
+\textbf{Redistancing.}
     For differentiable rendering of SBS in SparseDR, two versions of redistancing have
     been implemented. The first, full version, is an adaptation of the parallel fast sweeping
     method for SBS, which is used to acquire the correct SDF. In this version, it was
@@ -461,20 +295,7 @@ fourth@example.com
     using both redistancing versions. The accelerated version neither degrades reconstruction
     quality nor affects convergence to the reference.
 
-\subsection{Sparsification and Upsampling}
-
-    % Sparsification step выполняется перед upsampling, во время него сохраняются все
-    % брики, содержащие поверхность, а также все брики в радиусе 1 от них, включая
-    % диагональные. Если какой-либо
-    % из соседних бриков отсутствует, то он добавляется здесь. Этот шаг необходим в случае,
-    % когда восстанавливаемый объект содержит детали настолько мелкие, что после upsampling
-    % брики, в которых должна находиться их реконструкция, отсутствуют. Таким образом,
-    % данный шаг не только отвечает за уменьшение размера модели, но и устраняет
-    % потенциальное ограничение в сравнении с базовым методом.
-    % Upsampling step увеличивает разрешение оставшихся бриков в два раза, получая из
-    % одного брика восемь. Новые дистанции рассчитываются с помощью трилинейной
-    % интерполяции.
-
+\textbf{Sparsification and Upsampling.}
     The sparsification step is performed before upsampling. During this stage, all bricks
     containing the surface are preserved, as well as all bricks within a radius of 1
     voxel from them, including diagonal neighbors. If any of the adjacent bricks are
@@ -489,8 +310,6 @@ fourth@example.com
     The upsampling step doubles the resolution of the remaining bricks, generating eight
     new bricks from each original one. The new distance values are computed using trilinear
     interpolation.
-
-
 
 
 \section{Experiments}
