@@ -264,7 +264,8 @@ fourth@example.com
 
     The first version outputs correct sparse SDF, so it is used in SparseDR before
     upsampling and saving the result of reconstruction. The second version is faster
-    while giving the same result, so it is applied on each iteration.
+    while giving the same result for differentiable rendering, so it is applied on
+    each iteration.
 
 
 \textbf{Sparsification and Upsampling.}
@@ -300,18 +301,41 @@ fourth@example.com
     200, 400, 600, 700, 800, and 900. Computations were performed on an AMD Ryzen 9 7950X CPU
     and an NVIDIA GeForce RTX 4090 GPU.
 
-    % На рис. N показано среднее по всем моделям время реконструкции for each stage between upsampling
-    % steps для SparseDR и базового метода. Они обозначены размером SDF grid в вокселях соответствующего уровня
-    % детализации. Batch rendering is a consecutive отрисовка всех ракурсов на текущем
-    % батче.
+\begin{figure}
+    \centering
+    \includegraphics[width=\columnwidth,keepaspectratio]{figures/time_1iter.eps}
+    \caption{ Average time of 1 iteration. For each grid size, the left bar shows the baseline,
+              the right -- SparseDR for the SBS of equivalent level of detail. }
+    \label{fig:iter_time}
+\end{figure}
 
-    % На рис. N+1 показано среднее по ракурсам качество реконструкции для SparseDR и
-    % базового метода.
+\begin{figure}[t]
+    \centering
+    \includegraphics[width=\columnwidth,keepaspectratio]{figures/psnr_comp.eps}
+    \caption{ Average PSNR values across viewpoints for models. }
+    \label{fig:comp_psnr}
+\end{figure}
 
-    % И наконец, на рис. N+2 показан размер моделей для SparseDR и базового метода,
-    % полученных после каждого upsampling step. Для базового метода указан размер of grid,
-    % для SparseDR -- the size of SBS and the size of its BVH. Результаты показывают,
-    % что рост размера SBS на порядок меньше, чем у SDF grid.
+    Figure \ref{fig:iter_time} shows the average reconstruction time across
+    all models for each stage between upsampling steps for SparseDR and the
+    baseline method. The stages are labeled by the SDF grid resolution in
+    voxels corresponding to each level of detail. "Rendering" refers to
+    consecutive rendering of all views within the current batch.
+    Figure \ref{fig:comp_psnr} presents the mean reconstruction quality across viewpoints for
+    SparseDR and the baseline method.
+    Finally, Figure \ref{fig:comp_size} illustrates the model sizes for SparseDR and the
+    baseline method obtained after each upsampling step. For the baseline
+    method it shows the grid size, and for SparseDR both the size of the
+    SBS and of its BVH. The results demonstrate that the
+    growth of the SBS size is an order of magnitude smaller than that of the
+    SDF grid.
+
+\begin{figure}
+    \centering
+    \includegraphics[width=\columnwidth,keepaspectratio]{figures/size_comp.eps}
+    \caption{ Size of SDF grid (Baseline) and SBS (SparseDR) for all upsampling steps. using logarithmic scale. }
+    \label{fig:comp_size}
+\end{figure}
 
 \section{Conclusion}
 
