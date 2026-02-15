@@ -119,11 +119,49 @@ fourth@example.com
     % памяти без потерь в точности и скорости реконструкции, что демонстрируем на
     % примерах реконструкции геометрии.
 
-    3D reconstruction has achieved notable development over the past decade with the emergence of differentiable rendering -- a powerful tool that has spawned a wide variety of methods. One group of methods is aimed at reconstructing objects represented by SDF grids within the framework of physically-based rendering. A major drawback of such an approach is the rapid growth of memory consumption when reconstructing models with fine details. In this work, we propose an adaptation of the differentiable rendering method for SDF to a sparse representation, with sparse versions of redistancing and regularization. Through this, we achieve a reduction in memory usage and more accurate reconstruction of object geometry.
+    We present SparseDR, a differentiable rendering implementation designed for
+    sparse representations based on Signed Distance Fields (SDF). We leverage the
+    Sparse Brick Set (SBS) representation and propose an adaptation of redistancing and
+    regularization of the SDF defined on SBS. This enables our method to surpass
+    existing differentiable rendering implementations in accuracy at limited memory
+    budgets by increasing the effective resolution of the SDF representation.
+
 \end{abstract}
 
 \section{Introduction}
-    3D object reconstruction as (something else and then) Inverse rendering.
+
+\begin{figure*}[h!]
+    \centering
+    \includegraphics[width=\textwidth,keepaspectratio]{figures/header.eps}
+    \caption{Comparison of SparseDR algorithm (on the right) with the baseline.
+             The key differences are using sparse SDF representation, SBS, and
+             intersecting voxels along the ray instead of sphere tracing.}
+    \label{fig:header}
+\end{figure*}
+
+    Signed distance functions (SDFs) provide a continuous, implicit representation of
+    geometry, defining the shortest Euclidean distance from any point in space to the
+    nearest surface, with the sign indicating interior or exterior regions. This enables
+    gradient-based optimization by supporting differentiable rendering, where ray marching
+    samples distances to compute density and color, facilitating inverse rendering tasks
+    such as shape and material recovery from images.
+    
+    SDF-based differentiable rendering produces high-fidelity reconstructions with smooth
+    surfaces and topological consistency, outperforming many existing methods in handling
+    complex topologies. Unfortunately, existing SDF-based differentiable rendering implementations
+    are constrained in reconstruction accuracy due to high memory consumption and
+    substantial computational demands. Our work proposes a solution to this problem,
+    alleviating limitations through better data structures and sampling techniques: 
+
+    \begin{itemize}
+    	\item We propose an adaptation of SDF-based differentiable rendering to a sparse
+              data structure, which increases the effective resolution of the SDF representation
+              and thereby improves the surface reconstruction accuracy.
+    	\item We provide two novel algorithms of redistancing: a full version for SBS in general
+              and its accelerated version specifically for the differentiable rendering of SBS.
+    \end{itemize}
+
+    %%% 3D object reconstruction as (something else and then) Inverse rendering.
     % Задача трёхмерной реконструкции -- получение информации об объекте реального
     % мира, в частности его форме. (TODO: про 3д реконструкцию + подводка к обратному рендерингу)
 
@@ -133,7 +171,7 @@ fourth@example.com
     % параметров исходной сцены по её изображениям. Таким образом, задача обратного рендеринга
     % включает в себя трёхмерную реконструкцию.
 
-    Inverse rendering to Differentiable rendering.
+    %%% Inverse rendering to Differentiable rendering.
     % В последнее десятилетие для решения задачи обратного рендеринга активно
     % используется дифференцируемый рендеринг -- метод, восстанавливающий объекты
     % по изображениям с использованием градиентных методов оптимизации. Существует
@@ -141,7 +179,7 @@ fourth@example.com
     % они различаются, в первую очередь, тем, какое представление используется в процессе
     % оптимизации: нейронные SDF [NeuralAngelo+], NeRF [ссылки], 3DGS [ссылки] (TODO: ещё что-нибудь).
 
-    DR methods for physically-based rendering. Tell a bit about meshes and Nicolet article, then about two nonNN methods (2022,2024).
+    %%% DR methods for physically-based rendering. Tell a bit about meshes and Nicolet article, then about two nonNN methods (2022,2024).
     % В 2018 году появился метод edge sampling [ссылка], впервые позволивший получить
     % аналитические производные по параметрам геометрии, в частности меша, в физически-обоснованном
     % рендеринге. В этих условиях цвет пикселя представляет собой интеграл. При дифференцировании
@@ -193,8 +231,7 @@ fourth@example.com
     % расстояния вдоль луча представима кубическим полиномом. Отличие между ними заключается в
     % поиске корней этого полинома: аналитическом расчёте или же нескольких шагах метода Ньютона.
 
-    This method combines the idea of a relaxed boundary with the sparse SDF representation
-    from [link].
+    %%% This method combines the idea of a relaxed boundary with the sparse SDF representation from [link].
     % В данной работе представлена система SparseDR. Её принцип работы основан на методе
     % дифференцируемого рендеринга SDF, сочетающем идею оценки граничного интеграла
     % из [ссылка] с SBS. Для пересечения луча со сценой используется метод Ньютона, адаптированный
@@ -205,8 +242,41 @@ fourth@example.com
     % скоростью и точностью not inferior to the baseline method при существенном
     % сокращении потребляемой памяти.
 
+\section{Related Work}
+    
+    \cite{DRSDF22} introduces differentiable rendering operating directly on an SDF
+    representation. The authors modified sphere tracing so that, in addition to computing
+    the surface intersection, it evaluates a special reparameterization of rays, enabling
+    correct gradients with respect to shape parameters, including the visibility
+    contribution of individual surface regions. This work also first proposed the use
+    of a \textit{redistancing} --- a process of recomputing values on a grid such that
+    all grid cells store correct distances to the surface. In differentiable rendering
+    this recomputation is required because, after an optimization step and updating the
+    distances at grid nodes, the grid no longer strictly represents an SDF. \cite{DRSDF24}
+    exploits properties of distance functions and estimate the boundary integral by an
+    integral over a relaxed boundary, i.e., a thin band around the object silhouette.
+    \cite{ManyWorld25} propose for computing gradients in the presence of multiple
+    surfaces along a ray path: instead of locally differentiating a single surface,
+    the authors consider a volumetric, non-local perturbation of the surface.
+    
+    All of the above methods represent the distance function volumetrically on a regular
+    grid, which leads to three fundamental issues: (1) significant memory consumption,
+    especially when using automatic differentiation frameworks such as DrJit \cite{drjit}
+    or PyTorch \cite{pytorch}; (2) slow ray–surface intersection based on sphere tracing;
+    (3) an expensive redistancing algorithm that propagates modified SDF values across
+    the entire grid.
+    
+    Hash-table-based methods such as InstantNGP \cite{InstantNGP} could mitigate the
+    first issue, but by themselves cannot address the second and third. The key
+    difficulty is that the data structure used to store the SDF directly constrains
+    how differentiable ray–surface intersections are computed and how redistancing is
+    performed, and implementing redistancing on hash tables is, in our view, highly
+    nontrivial. Our work shows how these three components -- data structure, ray intersection,
+    and redistancing -- can be joined together in an efficient manner.
+
+
 \section{System Implementation}
-    Describe architecture -- components (their algorithms).
+    %%% Describe architecture -- components (their algorithms).
     % TODO: привести два алгоритма. Первый (внешний) показывает итерации по пресетам, между
     % которыми происходит разрежение и апсемплинг. Второй (внутренний) вызывается внутри
     % первого и содержит итерации дифф рендеринга. ПОСЛЕ попробовать показать, какие его
@@ -226,7 +296,27 @@ fourth@example.com
     % а поверхность объекта претерпевает наибольшие изменения. Затем, during the sparsification step сохраняются только
     % брики, которые содержат поверхность, и их ближайшие соседи.
 
-\subsection{Calculation of Derivatives}
+    To store the surface, SparseDR uses the Sparse Brick Set (SBS) proposed in \cite{soderlund2022ray},
+    which is a hybrid of hierarchical and regular representations, see Figure \ref{fig:header}. The entire scene is
+    encoded as a BVH or an octree, while its leaves store small regular grids, for
+    example 4x4x4. For gradient computation, we adapt the relaxed boundary method from
+    \cite{DRSDF24}, which we refer to as our baseline.
+    At the beginning of the optimization process, the distance function is initialized with
+    a sphere defined on a low-resolution grid (32x32x32). At each iteration, we estimate
+    the gradient and update the distance values using a gradient descent step,
+    followed by a regularization and accelerated redistancing (see Figure \ref{fig:redist}).
+    On every iteration when upsampling is required, which is defined by the user,
+    three steps are executed: sparsification step, full redistancing and upsampling.
+    Sparsification and full redistancing are also applied before the resulting model is saved.
+    % This relies on the reasonable assumption that updating only the bricks containing the
+    % surface allows to aquire correct relaxed boundary points, thus local redistancing is
+    % sufficient for the needs of differentiable rendering. Still, the other distances must
+    % be updated for SBS to represent a correct SDF. Additionally, during the sparsification
+    % step SBS can aquire new bricks, which also require redistancing for the new distanaces.
+    % Because of that, each time before the upsampling and at the end of optimization
+    % we apply the sparsification step and redistance the entire SBS.
+
+\subsection{Gradient evaluation}
 
     % Ключевым отличием метода в основе SparseDR является переход от SDF grid к
     % sparse brick set. В нашем случае, размер каждого брика фиксирован
@@ -247,12 +337,58 @@ fourth@example.com
     % после чего нужно лишь проверить, что значение SDF в ней меньше relaxed epsilon. Случай,
     % когда локальный минимум достигается на границе вокселей или бриков, обрабатывается отдельно.
 
+    % SparseDR реализована с использованием C++ and Vulkan и не использует автоматическое
+    % дифференцирование. Градиенты аккумулируются в массив of floats, по размеру равный
+    % числу обновляемых дистанций. В шейдере при расчёте цвета пикселя для 16 семплов
+    % хранится информация о вокселях, в которые они попали, и каждые 16 семплов (или после последнего)
+    % градиенты добавляются в массив.
+
     % SparseDR опционально использует дополнительный шейдер, который семплирует только
-    % пиксели, содержащие границы, и оценивает только граничный интеграл. Это явное
+    % пиксели, содержащие границы, и оценивает только граничный интеграл, без необходимости
+    % в расчёте цвета. Это адаптивное
     % семплирование границы позволяет делать более дешёвые семплы и получить более
     % точные градиенты для меньшего relaxed epsilon, reducing bias.
 
+    The key distinction of the method underlying SparseDR lies in the transition from an
+    SDF grid to a sparse brick set. In our case, each brick has a fixed size of 4×4×4 voxels.
+    For the SBS, a BVH tree is constructed, with each leaf node storing a single brick.
+    In addition to sphere tracing, alternative ray–SDF intersection methods have been
+    implemented: Newton and analytic, specifically designed to find intersections inside
+    the voxel. A ray first traverses the BVH; if an intersection with a leaf node is found,
+    it then intersects the voxels of the brick. The ray proceeds through each brick along
+    its path until the first intersection with a surface is reached.
+
+    The alternative ray–SDF intersection methods also support searching for relaxed
+    boundary points. According to [reference], a point belongs to the relaxed boundary
+    if the SDF value at that point is below a certain threshold called the relaxed epsilon,
+    and the SDF derivative along the ray reaches its local minimum. The Newton and analytic
+    methods are based on the fact that inside a voxel, the SDF along the ray can be
+    represented as a cubic polynomial. Thus, within the voxel, a potential relaxed boundary
+    point can be found as the root of a quadratic equation, after which it is sufficient
+    to verify that the SDF value at this point is less than the relaxed epsilon. The case
+    when the local minimum occurs on the boundary between voxels or bricks is handled
+    separately.
+
+    SparseDR is implemented in C++ and Vulkan and does not use automatic differentiation.
+    Gradients are accumulated in a float array whose size equals the number of updated
+    distances. In the shader, when computing the color of a pixel for 16 samples,
+    information about the voxels hit by the samples is stored; after every 16 samples
+    (or after the last one), the gradients are added to the array.
+    SparseDR optionally uses an additional shader that samples only pixels containing
+    boundaries and evaluates only the boundary integral, without the need for color
+    computation. This adaptive boundary sampling allows cheaper samples and yields more
+    accurate gradients for smaller relaxed epsilon values, thereby reducing bias.
+
 \subsection{Redistancing}
+
+\begin{figure}[h!]
+    \centering
+    \includegraphics[width=\columnwidth,keepaspectratio]{figures/redistancing.eps}
+    \caption{Comparison of the redistancing algorithm (on the left) with the accelerated version.
+             Updating only the bricks with a surface is sufficient to get correct relaxed
+             boundary points, as the brick size is larger than the relaxed epsilon.}
+    \label{fig:redist}
+\end{figure}
 
     % Для дифференцируемого рендеринга SBS в SparseDR реализовано две версии редистансинга.
     % Первая версия является адаптацией параллельной версии fast sweeping method [link]
@@ -270,9 +406,6 @@ fourth@example.com
     % между значениями сетки. Из экстраполированного значения и предыдущего выбирается
     % минимальное по модулю. Чтобы распространить обновлённые дистанции, последним
     % шагом всегда идёт fast sweeping method.
-
-    % TODO: рисунок, показывающий в 2D случае, какие грани соседних бриков будут использоваться
-    % на шаге экстраполяции.
 
     % Однако использование SBS instead of grid и метода Ньютона для поиска пересечения
     % inside the voxel instead of sphere tracing позволило исследовать возможности
@@ -294,14 +427,41 @@ fourth@example.com
     % sparsification step применяется первая версия редистансинга, которая рассчитывает
     % все дистанции перед сохранением чекпоинта, чтобы модель являлась корректной SDF.
 
-\subsection{Laplacian Regularization}
+    For differentiable rendering of SBS in SparseDR, two versions of redistancing have
+    been implemented. The first, full version, is an adaptation of the parallel fast sweeping
+    method for SBS, which is used to acquire the correct SDF. In this version, it was
+    necessary to address the problem of distance updates across empty space between bricks.
+    Consider a brick without neighbors and without any surface inside it. Following the
+    redistancing algorithm, the distances within it will be initialized with a constant
+    value and will never be updated. In differentiable rendering, such extreme cases do
+    not occur, but situations may arise where the distances within a brick have larger
+    absolute values than they should, since adjacent bricks are not taken into account.
+    To solve this issue, an extrapolation step between brick faces was introduced.
+    For each face of a brick without a direct neighbor, the nearest neighbor bricks
+    are found, and one of their faces is selected for extrapolating the values. These
+    neighbors are determined once, and after each fast sweeping step, values are extrapolated
+    considering the grid spacing. From the extrapolated and previous values, the one with
+    the smallest absolute value is chosen. To propagate the updated distances, the fast
+    sweeping method is always applied as the final step of this algorithm.
 
-    % По умолчанию, регуляризация в SparseDR используется на поздних этапах оптимизации для сглаживания поверхности,
-    % а также для сравнения с базовым методом. Представляет собой свёртку дистанций SBS with
-    % discrete Laplacian kernel. Реализована на CPU, распараллелена по кирпичам, для которых
-    % хранится информация о соседях. Применяется только к брикам с поверхностью.
+    However, using SBS instead of a grid and Newton’s method for intersection search
+    inside the voxel instead of sphere tracing opened opportunities for optimization of
+    the redistancing procedure. These resulted in an accelerated version, which is used
+    after each iteration. The first idea is to exploit the properties of intersection
+    based on the Newton method. Since each ray traverses all voxels along its path, it
+    does not depend on exact distance values in voxels that do not contain boundaries. Therefore,
+    to obtain accurate surface intersections and relaxed boundary points, it is sufficient
+    to apply redistancing only for surface bricks. The second idea assumes that in surface
+    bricks it is enough to compute distances considering only the surface stored within
+    the same brick, without propagating distance values between bricks. This assumption
+    was only partially confirmed, since during the initialization stage, redistancing
+    recalculates distances defining the surface, and they must be as accurate as possible.
+    However, after initialization, redistancing localized within individual bricks is sufficient.
+    Figure Nn shows the MSE plot for optimization iterations of the Nefertiti bust model
+    using both redistancing versions. The accelerated version neither degrades reconstruction
+    quality nor affects convergence to the reference.
 
-\subsection{Sparsification}
+\subsection{Sparsification and Upsampling}
 
     % Sparsification step выполняется перед upsampling, во время него сохраняются все
     % брики, содержащие поверхность, а также все брики в радиусе 1 от них, включая
@@ -311,17 +471,31 @@ fourth@example.com
     % брики, в которых должна находиться их реконструкция, отсутствуют. Таким образом,
     % данный шаг не только отвечает за уменьшение размера модели, но и устраняет
     % потенциальное ограничение в сравнении с базовым методом.
-
-\subsection{Upsampling}
-
     % Upsampling step увеличивает разрешение оставшихся бриков в два раза, получая из
     % одного брика восемь. Новые дистанции рассчитываются с помощью трилинейной
     % интерполяции.
 
+    The sparsification step is performed before upsampling. During this stage, all bricks
+    containing the surface are preserved, as well as all bricks within a radius of 1
+    voxel from them, including diagonal neighbors. If any of the adjacent bricks are
+    missing, they are added at this stage. This is necessary in cases where the
+    reconstructed object contains fine details, so that the bricks where these details'
+    reconstruction should reside would otherwise be absent. Thus, this step not only
+    contributes to reducing the model size, but also eliminates a potential limitation
+    compared to the baseline method.
+    After the sparsification step, the full version of redistancing is applied to
+    recompute all distances before upsampling or saving the resulting SBS, ensuring
+    that the model represents a valid SDF.
+    The upsampling step doubles the resolution of the remaining bricks, generating eight
+    new bricks from each original one. The new distance values are computed using trilinear
+    interpolation.
+
+
+
 
 \section{Experiments}
 
-    % SparseDR реализована с использованием C++ and Vulkan. Эксперименты с базовым методом
+    % Эксперименты с базовым методом
     % проводились с использованием [ссылка], где представлена его официальная реализация.
     % Для базового метода использовались гиперпараметры, указанные в статье (ссылка),
     % остальные параметры взяты из конфигурационного файла
@@ -340,6 +514,20 @@ fourth@example.com
     % Hardware configuration: вычисления производились on AMD Ryzen 9 7950X CPU and
     % Nvidia GeForce RTX 4090.
 
+    Experiments with the baseline method were conducted using [https://github.com/zichenwang01/relaxed-boundary/],
+    which provides its official implementation. The baseline method employed the hyperparameters
+    specified in the paper [reference], while the remaining parameters were taken from
+    the configuration file “turbo.json”. The only modifications concerned the number of
+    viewpoints, the batch size, and the steps at which upsampling was performed. For
+    consistency across experiments, an identical lighting setup was used: two directional
+    light sources with directions $(1,1,1)$ and $(-1,-1,-1)$, along with ambient light.
+    The experiments were carried out on six models. Reconstruction used 16 viewpoints
+    uniformly distributed over a sphere around the scene, generated by the algorithm
+    from [reference]. The batch size is 4 viewpoints, image resolution is 1024×1024.
+    The full optimization process comprised 1000 steps, with upsampling applied at steps
+    200, 400, 600, 700, 800, and 900. Computations were performed on an AMD Ryzen 9 7950X CPU
+    and an NVIDIA GeForce RTX 4090 GPU.
+
     % На рис. N показано среднее по всем моделям время реконструкции for each stage between upsampling
     % steps для SparseDR и базового метода. Они обозначены размером SDF grid в вокселях соответствующего уровня
     % детализации. Batch rendering is a consecutive отрисовка всех ракурсов на текущем
@@ -353,7 +541,16 @@ fourth@example.com
     % для SparseDR -- the size of SBS and the size of its BVH. Результаты показывают,
     % что рост размера SBS на порядок меньше, чем у SDF grid.
 
-\section{Conclusion} % Должен быть побольше
+\section{Conclusion}
+
+    In this work, we present SparseDR, a system for 3D reconstruction based on the method
+    of differentiable rendering for a sparse SDF representation. Using [reference] as a
+    baseline, we leverage the advantages of SBS and modify all stages of the algorithm.
+    As a result, SparseDR achieves performance and reconstruction quality comparable to
+    the original approach while reducing memory consumption by an order of magnitude.
+    Future work will focus on upgrading SparseDR to a full-fledged path tracer and
+    addressing the challenges that complicate the practical use of differentiable rendering,
+    in particular the need for precise camera parameter information.
 
     % В данной работе была представлена SparseDR, система для 3D реконструкции,
     % основанная на методе дифференцируемого рендеринга для разреженного
