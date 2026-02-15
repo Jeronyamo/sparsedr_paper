@@ -201,7 +201,7 @@ fourth@example.com
     To store the surface, SparseDR uses the Sparse Brick Set (SBS) proposed in \cite{soderlund2022ray},
     which is a hybrid of hierarchical and regular representations, see Figure \ref{fig:header}. The entire scene is
     encoded as a BVH or an octree, while its leaves store small regular grids, for
-    example 4x4x4. For gradient computation, we adapt the relaxed boundary method from
+    example 4x4x4 voxels (5x5x5 distances). For gradient computation, we adapt the relaxed boundary method from
     \cite{DRSDF24}, which we refer to as our baseline.
     At the beginning of the optimization process, the distance function is initialized with
     a sphere defined on a low-resolution grid (32x32x32). At each iteration, we estimate
@@ -222,24 +222,26 @@ fourth@example.com
     The key distinction of the method underlying SparseDR lies in the transition from an
     SDF grid to a sparse brick set. In our case, each brick has a fixed size of 4×4×4 voxels.
     For the SBS, a BVH tree is constructed, with each leaf node storing a single brick.
-    In addition to sphere tracing, alternative ray–SDF intersection methods have been
-    implemented: Newton and analytic, specifically designed to find intersections inside
+    In addition to sphere tracing, the Newton method \cite{soderlund2022ray} for ray–SDF intersection has been
+    implemented. It is specifically designed to find intersections inside
     the voxel. A ray first traverses the BVH; if an intersection with a leaf node is found,
-    it then intersects the voxels of the brick. The ray proceeds through each brick along
-    its path until the first intersection with a surface is reached.
+    it then intersects the voxels of the brick. The ray traverses each brick along
+    its path until it hits the surface or there are no bricks left.
 
-    The alternative ray–SDF intersection methods also support searching for relaxed
-    boundary points. According to [reference], a point belongs to the relaxed boundary
-    if the SDF value at that point is below a certain threshold called the relaxed epsilon,
-    and the SDF derivative along the ray reaches its local minimum. The Newton and analytic
-    methods are based on the fact that inside a voxel, the SDF along the ray can be
+    The Newton method was modified to search for relaxed
+    boundary points. According to \cite{DRSDF24}, a point belongs to the relaxed boundary
+    if the SDF value at that point is below a certain threshold, which we refer to as the relaxed epsilon,
+    and the SDF derivative along the ray reaches its local minimum. The Newton
+    method is based on the fact that inside a voxel, the SDF along the ray can be
     represented as a cubic polynomial. Thus, within the voxel, a potential relaxed boundary
-    point can be found as the root of a quadratic equation, after which it is sufficient
-    to verify that the SDF value at this point is less than the relaxed epsilon. The case
-    when the local minimum occurs on the boundary between voxels or bricks is handled
-    separately.
+    point is found as the root of a quadratic equation, after which the SDF value at
+    the point is checked to be less than the relaxed epsilon. The case when the local
+    minimum occurs on the boundary between voxels or bricks is handled separately.
 
     SparseDR is implemented in C++ and Vulkan and does not use automatic differentiation.
+    The chain of computations that was differentiated is as follows: MSE loss -- pixel color
+    (an average of sample colors) -- sample color (when it hits the surface: trilinear
+    interpolation of distances in the voxel) -- distances.
     Gradients are accumulated in a float array whose size equals the number of updated
     distances. In the shader, when computing the color of a pixel for 16 samples,
     information about the voxels hit by the samples is stored; after every 16 samples
@@ -252,11 +254,12 @@ fourth@example.com
 \begin{figure}
     \centering
     \includegraphics[width=\columnwidth,keepaspectratio]{figures/redistancing.eps}
-    \caption{Comparison of the redistancing algorithm (on the left) with the accelerated version
+    \caption{Comparison of the redistancing algorithm on grid (on the left) with the accelerated version
              (on the right) with SBS bricks 3x3 distances in size.
-             The dots represent the distance values. Red and blue dots are outside and inside the
+             The dots represent the distance values. Red and blue dots are the distances outside and inside the
              object respectively. Strip line represents the surface, set by distances colored
-             white. Arrows show the order of updating the values. }
+             white. Arrows show the order of updating the values. Bricks without surface (grey) are ignored by
+             accelerated redistancing. }
     \label{fig:redist}
 \end{figure}
 
