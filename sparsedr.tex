@@ -85,18 +85,15 @@
 % Multiple author syntax (remove the single-author syntax above and the \iffalse ... \fi here)
 % \iffalse
 \author{
-First Author$^1$
+First Author$^{1,2}$
 \and
 Second Author$^2$\and
-Third Author$^{2,3}$\And
-Fourth Author$^4$\\
+Third Author$^{1,2}$\And
 \affiliations
 $^1$First Affiliation\\
 $^2$Second Affiliation\\
-$^3$Third Affiliation\\
-$^4$Fourth Affiliation\\
 \emails % usually included
-\{first, second\}@example.com,
+% alexey.budak@graphics.cs.msu.ru,
 third@other.example.com,
 fourth@example.com
 }
@@ -136,8 +133,8 @@ fourth@example.com
     	\item We propose an adaptation of SDF-based differentiable rendering to a sparse
               data structure, which increases the effective resolution of the SDF representation
               and thereby improves the surface reconstruction accuracy.
-    	\item We provide two novel algorithms of redistancing: a full version for SBS in general
-              and its accelerated version specifically for the differentiable rendering of SBS.
+    	\item We provide two novel algorithms of redistancing for sparse SDF: a global version,
+              which is used once per epoch, and local version used on every iteration.
     \end{itemize}
 
 
@@ -165,17 +162,17 @@ fourth@example.com
     (3) an expensive redistancing algorithm that propagates modified SDF values across
     the entire grid.
     
-    Hash-table-based methods such as InstantNGP \cite{InstantNGP} could mitigate the
-    first issue, but by themselves cannot address the second and third. The key
-    difficulty is that the data structure used to store the SDF directly constrains
-    how differentiable ray–surface intersections are computed and how redistancing is
-    performed, and implementing redistancing on hash tables is, in our view, highly
-    nontrivial. Our work shows how these three components -- data structure, ray intersection,
-    and redistancing -- can be joined together in an efficient manner.
+    % Hash-table-based methods such as InstantNGP \cite{InstantNGP} could mitigate the
+    % first issue, but by themselves cannot address the second and third. The key
+    % difficulty is that the data structure used to store the SDF directly constrains
+    % how differentiable ray–surface intersections are computed and how redistancing is
+    % performed, and implementing redistancing on hash tables is, in our view, highly
+    % nontrivial. Our work shows how these three components -- data structure, ray intersection,
+    % and redistancing -- can be joined together in an efficient manner.
 
 
 \section{Implementation Details}
-\begin{figure}
+\begin{figure}[h]
     \centering
     \includegraphics[width=\columnwidth,keepaspectratio]{figures/header.eps}
     \caption{Comparison of SparseDR algorithm with the baseline.
@@ -192,12 +189,11 @@ fourth@example.com
     example 4x4x4 voxels (5x5x5 distances). For gradient computation, we adapt the relaxed boundary method from
     \cite{DRSDF24}, which we refer to as our baseline.
     At the beginning of the optimization process, the distance function is initialized with
-    a sphere defined on a low-resolution grid (32x32x32). At each iteration, we estimate
+    a sphere defined on a low-resolution grid (32x32x32). At each iteration of an epoch, we estimate
     the gradient and update the distance values using a gradient descent step,
-    followed by a regularization and accelerated redistancing (see Figure \ref{fig:redist}).
-    On every iteration when upsampling is required, which is defined by the user,
-    three steps are executed: sparsification step, full redistancing and upsampling.
-    Sparsification and full redistancing are also applied before the resulting model is saved.
+    followed by a regularization and local redistancing (see Figure \ref{fig:redist}).
+    On the end of each epoch two steps are executed: upsampling step and global redistancing.
+    Upsampling is not performed before the resulting model is saved.
 
 \textbf{Gradient evaluation.}
     The key distinction of the method underlying SparseDR lies in the transition from an
@@ -219,26 +215,24 @@ fourth@example.com
     the point is checked to be less than the relaxed epsilon. The case when the local
     minimum occurs on the boundary between voxels or bricks is handled separately.
 
-    SparseDR is implemented in C++ and Vulkan and does not use automatic differentiation.
-    The chain of computations that was differentiated is as follows: MSE loss -- pixel color
-    (an average of sample colors) -- sample color (when it hits the surface: trilinear
-    interpolation of distances in the voxel) -- distances.
-    Gradients are accumulated in a float array whose size equals the number of updated
-    distances. In the shader, when computing the color of a pixel for 16 samples,
+    SparseDR is implemented in C++ and Vulkan and does not use automatic differentiation,
+    all derivatives were obtained manually.
+    Gradients are accumulated in a float array whose size equals the number of optimized
+    parameters. In the shader, when computing the color of a pixel for 16 samples,
     information about the voxels hit by the samples is stored; after every 16 samples
     (or after the last one), the gradients are added to the array.
     SparseDR optionally uses an additional shader that samples only pixels containing
     boundaries and evaluates only the boundary integral, without the need for color
     computation. This adaptive boundary sampling allows cheaper samples and yields more
-    accurate gradients for smaller relaxed epsilon values, thereby reducing bias.
+    accurate gradients for smaller relaxed epsilon values.
 
 \begin{figure}
     \centering
     \includegraphics[width=\columnwidth,keepaspectratio]{figures/redistancing.eps}
-    \caption{Comparison of the redistancing algorithm on grid (on the left) with the accelerated version
-             (on the right) with SBS bricks 3x3 distances in size.
+    \caption{Comparison of the redistancing algorithm on dense grid (on the left) with the local redistancing
+             (on the right) on SBS, bricks are 3x3 distances in size.
              The dots represent the distance values. Red and blue dots are the distances outside and inside the
-             object respectively. Strip line represents the surface, set by distances colored
+             object respectively. Dashed line represents the surface, set by distances colored
              white. Arrows show the order of updating the values. Bricks without surface (grey) are ignored by
              accelerated redistancing. }
     \label{fig:redist}
@@ -323,24 +317,53 @@ fourth@example.com
     consecutive rendering of all views within the current batch.
     Figure \ref{fig:comp_psnr} presents the mean reconstruction quality across viewpoints for
     SparseDR and the baseline method.
-    Finally, Figure \ref{fig:comp_size} illustrates the model sizes for SparseDR and the
+    Finally, Figure \ref{tab:comp_size} illustrates the model sizes for SparseDR and the
     baseline method obtained after each upsampling step. For the baseline
     method it shows the grid size, and for SparseDR both the size of the
     SBS and of its BVH. The results demonstrate that the
     growth of the SBS size is an order of magnitude smaller than that of the
     SDF grid.
 
-\begin{figure}
+\begin{table}
     \centering
-    \includegraphics[width=\columnwidth,keepaspectratio]{figures/size_comp.eps}
-    \caption{ Size of SDF grid (Baseline) and SBS (SparseDR) for all upsampling steps. using logarithmic scale. }
-    \label{fig:comp_size}
-\end{figure}
+    \begin{tabular}{cccccc}
+        \toprule
+        Model   & $32^3$ & $128^3$ & $512^3$ & $1024^3$ & $2048^3$ \\
+        \cmidrule(lr){1-1}  \cmidrule(lr){2-6}
+        Baseline      & 0.125 & 8   & 512  & -- & -- \\
+        Ours(Armadillo) &   0.5 & 6.3 & 96.4 & 392.1 & 1597.7  \\
+        \cmidrule(lr){1-1}  \cmidrule(lr){2-6}
+        Baseline      & 0.125 & 8   & 512  & -- & -- \\
+        Ours(Bunny) &   0.5 & 6.3 & 96.4 & 392.1 & 1597.7  \\
+        \cmidrule(lr){1-1}  \cmidrule(lr){2-6}
+        Baseline      & 0.125 & 8   & 512  & -- & -- \\
+        Ours(Dragon) &   0.5 & 6.3 & 96.4 & 392.1 & 1597.7  \\
+        \cmidrule(lr){1-1}  \cmidrule(lr){2-6}
+        Baseline      & 0.125 & 8   & 512  & -- & -- \\
+        Ours(Happy) &   0.5 & 6.3 & 96.4 & 392.1 & 1597.7  \\
+        \cmidrule(lr){1-1}  \cmidrule(lr){2-6}
+        Baseline      & 0.125 & 8   & 512  & -- & -- \\
+        Ours(Nefertiti) &   0.5 & 6.3 & 96.4 & 392.1 & 1597.7  \\
+        \cmidrule(lr){1-1}  \cmidrule(lr){2-6}
+        Baseline      & \textbf{0.125} & 8   & 512  & -- & -- \\
+        Ours(Teapot) &   0.5 & \textbf{6.3} & \textbf{96.4} & \textbf{392.1} & \textbf{1597.7}  \\
+        \bottomrule
+    \end{tabular}
+    \caption{Model sizes for Relaxed Boundary and SparseDR methods. All values are in MB.}
+    \label{tab:comp_size}
+\end{table}
+
+% \begin{figure}
+%     \centering
+%     \includegraphics[width=\columnwidth,keepaspectratio]{figures/size_comp.eps}
+%     \caption{ Size of SDF grid (Baseline) and SBS (SparseDR) for all upsampling steps. using logarithmic scale. }
+%     \label{fig:comp_size}
+% \end{figure}
 
 \section{Conclusion}
 
     In this work we present SparseDR, a system for 3D reconstruction based on the method
-    of differentiable rendering for a sparse SDF representation. Using [reference] as a
+    of differentiable rendering for a sparse SDF representation. Using \cite{DRSDF24} as a
     baseline, we leverage the advantages of SBS and modify all stages of the algorithm.
     As a result, SparseDR achieves performance and reconstruction quality comparable to
     the original approach while reducing memory consumption by an order of magnitude.

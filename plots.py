@@ -46,12 +46,14 @@ for i, stage in enumerate(stage_times.items()):
 
 # ax.set_title('Average time of 1 iteration ' + image_size)
 # ax.set_xlabel("Equivalent grid size")
-ax.set_ylabel("Time (ms)")
+ax.set_ylabel("Time (ms)", fontsize=14)
 ax.set_xticks(range(len(grid_equivalents)))
-ax.set_xticklabels(grid_equivalents)
-ax.legend()
-handles, labels = plt.gca().get_legend_handles_labels()
-plt.legend(handles[::-1], labels[::-1])
+ax.set_xticklabels(grid_equivalents, fontsize=14)
+ax.set_yticks(range(0, 2501, 500))
+ax.set_yticklabels(range(0, 2501, 500), fontsize=14)
+ax.set_ylim(0, 2600)
+handles, labels = ax.get_legend_handles_labels()
+ax.legend(handles[::-1], labels[::-1], fontsize=12)
 plt.savefig("figures/time_1iter.eps")
 plt.savefig("figures/time_1iter.png")
 
@@ -131,11 +133,11 @@ fig, ax = plt.subplots(dpi=300, layout='constrained')
 
 grid_equivalents = ('32³', '64³', '128³', '256³', '512³', '1024³', '2048³')
 arr_sizes = np.array([[32**3/1024/1024, 64**3/1024/1024, 128**3/1024/1024, 256**3/1024/1024, 512**3/1024/1024, 1024**3/1024/1024, 2048**3/1024/1024], [0.7,1.7,6.3,23.7,96.4,392.1, 1597.7]])
-ax.plot(grid_equivalents, arr_sizes[0].T, label="Baseline", color=stage_colors[0])
+ax.plot(grid_equivalents, arr_sizes[0].T, label="Relaxed Boundary", color=stage_colors[0])
 ax.plot(grid_equivalents, arr_sizes[1].T, label="SparseDR", color=stage_colors[3])
 
 # ax.set_xlabel("Iterations")
-ax.set_ylabel("Size (MB)")
+ax.set_ylabel("Size (MB)", fontsize=14)
 ax.set_yscale("log", base=2)
 handles, labels = ax.get_legend_handles_labels()
 ax.legend(fontsize=14)
@@ -146,13 +148,13 @@ plt.savefig("figures/size_comp.png")
 #Print PSNR bar plot
 models = ("Armadillo", "Bunny", "Dragon", "Happy", "Nefertiti", "Teapot")
 method_psnr = {
-    'Baseline': (31., 35., 30., 31., 35., 36),
-    'SparseDR': (all_scene_infos["ArmadilloNew1024"]["scene_avg_psnr"],
-                 all_scene_infos[    "BunnyNew1024"]["scene_avg_psnr"],
-                 all_scene_infos[   "DragonNew1024"]["scene_avg_psnr"],
-                 all_scene_infos[    "HappyNew1024"]["scene_avg_psnr"],
-                 all_scene_infos["NefertitiNew1024"]["scene_avg_psnr"],
-                 all_scene_infos[   "TeapotNew1024"]["scene_avg_psnr"]),
+    'Relaxed Boundary': (28.65, 35., 31.0, 34.5, 35., 36),
+    'SparseDR': (round(all_scene_infos["ArmadilloNew1024"]["scene_avg_psnr"], 1),
+                 round(all_scene_infos[    "BunnyNew1024"]["scene_avg_psnr"], 1),
+                 round(all_scene_infos[   "DragonNew1024"]["scene_avg_psnr"], 1),
+                 round(all_scene_infos[    "HappyNew1024"]["scene_avg_psnr"], 1),
+                 round(all_scene_infos["NefertitiNew1024"]["scene_avg_psnr"], 1),
+                 round(all_scene_infos[   "TeapotNew1024"]["scene_avg_psnr"], 1)),
 }
 
 x = np.arange(len(models))  # the label locations
@@ -164,16 +166,19 @@ itr = 0
 for attribute, measurement in method_psnr.items():
     offset = width * multiplier
     rects = ax.bar(x + offset, measurement, width, label=attribute, color=stage_colors[itr])
-    ax.bar_label(rects, padding=3)
+    ax.bar_label(rects, padding=2, fontsize=12, fmt="%g")
     multiplier += 1
     itr += 3
 
 # Add some text for labels, title and custom x-axis tick labels, etc.
-ax.set_ylabel('PSNR (dB)')
+ax.set_ylabel('PSNR (dB)', fontsize=14)
 # ax.set_title('Penguin attributes by species')
-ax.set_xticks(x + width, models)
+ax.set_xticks(x + width)
+ax.set_xticklabels(models, fontsize=14)
+ax.set_yticks(range(51, 10))
+# ax.set_yticklabels(range(51, 10), fontsize=14)
+ax.set_ylim(0, 52)
 ax.legend(loc='upper left', ncols=2, fontsize=14)
-ax.set_ylim(0, 50)
 
 plt.savefig("figures/psnr_comp.eps")
 plt.savefig("figures/psnr_comp.png")
