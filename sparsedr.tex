@@ -160,10 +160,10 @@ SparseDR optionally uses an additional pass that only samples pixels containing 
 We implemented two versions of redistancing: local and global (Figure \ref{fig:redist}). The local version is applied at each iteration, recomputing distances only within bricks containing the surface. In practice, the local redistancing is almost always sufficient, since our ray–surface intersection method relies only on the distances within the traversed bricks. In other words, for the proposed method, the distances in the bricks without a surface are not required to strictly satisfy the SDF property during optimization. However, this approach may cause distance inconsistencies between adjacent bricks, so we perform global redistancing at the end of each epoch.
 
 
-\begin{figure}[tb]
+\begin{figure}[t]
     \centering
-    \includegraphics[width=0.8\columnwidth,keepaspectratio]{figures/collage_sparsedr.pdf}
-    \caption{ Reconstructioin examples for different SBS resolutions. }
+    \includegraphics[width=0.7\columnwidth,keepaspectratio]{figures/collage_sparsedr_new.pdf}
+    \caption{ Reconstruction examples for different epochs. }
     \label{fig:collage}
 \end{figure}
 
