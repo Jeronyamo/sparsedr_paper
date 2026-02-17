@@ -226,27 +226,27 @@ $^2$Lomonosov Moscow State University\\
 
 \begin{table}
     \centering
-    \begin{tabular}{cccccc}
+    \begin{tabular}{cccccc} % 1, 2, 4, 5, 7,
         \toprule
-        Representation & $32^3$ & $128^3$ & $512^3$ & $1024^3$ & $2048^3$  \\
+        Representation & $64^3$ & $128^3$ & $512^3$ & $1024^3$ & $2048^3$  \\
         \midrule[\heavyrulewidth]
-        Baseline      & 0.125 & 8   & 512  & 4096* & 32768* \\
-        Ours(Armadillo) &   0.5 & 6.3 & 96.4 & 392.1 & 1597.7  \\
+        Baseline      & \textbf{0.3} & \textbf{8.0} & 512  & 4096* & 32768* \\
+        Ours(Armadillo) &   3.1 & 14.1 & \textbf{126.2} & \textbf{514.2} & \textbf{1074.2}  \\
         \cmidrule(lr){1-1}  \cmidrule(lr){2-6}
-        Baseline      & 0.125 & 8   & 512  & 4096* & 32768* \\
-        Ours(Bunny) &   0.5 & 6.3 & 96.4 & 392.1 & 1597.7  \\
+        Baseline      & \textbf{0.3} & \textbf{8.0} & 512  & 4096* & 32768* \\
+        Ours(Bunny) &   2.9 & 11.4 & \textbf{195.1} & \textbf{775.3} & \textbf{3093.8}  \\
         \cmidrule(lr){1-1}  \cmidrule(lr){2-6}
-        Baseline      & 0.125 & 8   & 512  & 4096* & 32768* \\
-        Ours(Dragon) &   0.5 & 6.3 & 96.4 & 392.1 & 1597.7  \\
+        Baseline      & \textbf{0.3} & 8   & 512  & 4096* & 32768* \\
+        Ours(Dragon) &   1.8 & \textbf{4.8} & \textbf{67.9} & \textbf{275.6} & \textbf{1154.6}  \\
         \cmidrule(lr){1-1}  \cmidrule(lr){2-6}
-        Baseline      & 0.125 & 8   & 512  & 4096* & 32768* \\
-        Ours(Happy) &   0.5 & 6.3 & 96.4 & 392.1 & 1597.7  \\
+        Baseline      & \textbf{0.3} & 8   & 512  & 4096* & 32768* \\
+        Ours(Happy) &   1.5 & \textbf{4.9} & \textbf{88.5} & \textbf{373.9} & \textbf{1562.8}  \\
         \cmidrule(lr){1-1}  \cmidrule(lr){2-6}
-        Baseline      & 0.125 & 8   & 512  & 4096* & 32768* \\
-        Ours(Nefertiti) &   0.5 & 6.3 & 96.4 & 392.1 & 1597.7  \\
+        Baseline      & \textbf{0.3} & 8   & 512  & 4096* & 32768* \\
+        Ours(Nefertiti) &   2.2 & \textbf{7.3} & \textbf{114.1} & \textbf{459.0} & \textbf{1845.3}  \\
         \cmidrule(lr){1-1}  \cmidrule(lr){2-6}
-        Baseline      & \textbf{0.125} & 8   & 512  & 4096* & 32768* \\
-        Ours(Teapot) &   0.5 & \textbf{6.3} & \textbf{96.4} & \textbf{392.1} & \textbf{1597.7}  \\
+        Baseline      & \textbf{0.3} & 8   & 512  & 4096* & 32768* \\
+        Ours(Teapot) & 1.7 & \textbf{6.3} & \textbf{96.4} & \textbf{392.1} & \textbf{1597.7}  \\
         \bottomrule
     \end{tabular}
     \caption{Model sizes for Relaxed Boundary and SparseDR methods. All values are in MB.
