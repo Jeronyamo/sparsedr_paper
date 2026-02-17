@@ -131,7 +131,7 @@ $^2$Lomonosov Moscow State University\\
 
 \section{Implementation Details}
 
-    SparseDR uses the Sparse Brick Set (SBS) proposed in \cite{soderlund2022ray}, a hybrid of hierarchical and regular representations (Fig. \ref{fig:header}). The entire scene is
+    SparseDR uses the Sparse Brick Set (SBS) proposed in \cite{soderlund2022ray}, a hybrid of hierarchical and regular representations (Figure \ref{fig:header}). The entire scene is
     encoded as a BVH, while its leaves store small regular SDF grids, for
     example 4x4x4 voxels. For gradient computation, we adapt the relaxed boundary method from \cite{DRSDF24}, which we refer to as our baseline.
     
@@ -256,8 +256,7 @@ $^2$Lomonosov Moscow State University\\
 
 \section{Conclusion}
 
-    In this work we present SparseDR, a system for 3D reconstruction based on the method
-    of differentiable rendering for a sparse SDF representation. Using \cite{DRSDF24} as a
+    In this work we present SparseDR, a system for 3D reconstruction based on differentiable rendering of a sparse SDF representation. Using \cite{DRSDF24} as a
     baseline, we leverage the advantages of SBS and modify all stages of the algorithm.
     As a result, SparseDR achieves performance and reconstruction quality comparable to
     the original approach while reducing memory consumption by an order of magnitude.
