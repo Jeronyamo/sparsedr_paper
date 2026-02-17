@@ -140,7 +140,7 @@ The signed distance function (SDF) provides a continuous implicit representation
     
 The proposed optimization process consists of several epochs with multiple gradient descent optimization steps in each. At the beginning, the distance function is initialized with a sphere defined on a low-resolution grid (e.g., $32^3$). At each iteration we estimate the gradient and update the distance values using a gradient descent step followed by a regularization and local redistancing (see Figure \ref{fig:redist}). At the end of each epoch two steps are executed: upsampling and global redistancing. After the last epoch, only global redistancing is performed.
 
-\textbf{Gradient evaluation.} The key feature of SparseDR is the transition from a regular grid to a Sparse Brick Set. A BVH tree is constructed for the SBS, with each leaf node storing a single brick. Instead of sphere tracing, we have adapted a faster Newton method for ray–SDF intersection~\cite{soderlund2022ray}. A ray first traverses the BVH; if an intersection with a leaf node is found, it then intersects the voxels of the brick. The ray traverses each brick along its path until it hits the surface or there are no bricks left. The Newton method was modified to search for the relaxed boundary points: within the voxel, a potential relaxed boundary point is found as the root of a quadratic equation, after which the SDF value at the point is checked to be below the relaxed epsilon. The case when the local minimum occurs on the voxel boundary is handled separately.
+\textbf{Gradient Evaluation.} The key feature of SparseDR is the transition from a regular grid to a Sparse Brick Set. A BVH tree is constructed for the SBS, with each leaf node storing a single brick. Instead of sphere tracing, we have adapted a faster Newton method for ray–SDF intersection~\cite{soderlund2022ray}. A ray first traverses the BVH; if an intersection with a leaf node is found, it then intersects the voxels of the brick. The ray traverses each brick along its path until it hits the surface or there are no bricks left. The Newton method was modified to search for the relaxed boundary points: within the voxel, a potential relaxed boundary point is found as the root of a quadratic equation, after which the SDF value at the point is checked to be below the relaxed epsilon. The case when the local minimum occurs on the voxel boundary is handled separately.
 
 SparseDR is implemented in C++ and Vulkan and does not use automatic differentiation, i.e., all derivatives were obtained analytically. In the shader we accumulate the pixel color in batches of 16 samples, storing the information about voxels the samples hit in a fixed-size array. Every 16 samples, or after the last one, the gradients are backpropagated using atomic operations.
 
@@ -202,7 +202,7 @@ The upsampling step starts with SBS sparsification. During this stage, only the 
 
     Figure \ref{fig:iter_time} shows the average reconstruction time across
     all models for each epoch for SparseDR and the
-    baseline. The models are labeled by the SDF grid of corresponding resolution. "Rendering" refers to 
+    baseline. The models are labeled by the SDF grid of corresponding resolution. "Gradient Evaluation" refers to 
     consecutive rendering of all views within the current batch.
     Figure \ref{fig:comp_psnr} presents the mean reconstruction quality across viewpoints for
     SparseDR and the baseline.
