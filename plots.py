@@ -46,7 +46,7 @@ for i, stage in enumerate(stage_times.items()):
 
 # ax.set_title('Average time of 1 iteration ' + image_size)
 # ax.set_xlabel("Equivalent grid size")
-ax.set_ylabel("Time (ms)", fontsize=14)
+ax.set_ylabel("⟵ Time (ms)", fontsize=14)
 ax.set_xticks(range(len(grid_equivalents)))
 ax.set_xticklabels(grid_equivalents, fontsize=14)
 ax.set_yticks(range(0, 2501, 500))
@@ -137,7 +137,7 @@ ax.plot(grid_equivalents, arr_sizes[0].T, label="Relaxed Boundary", color=stage_
 ax.plot(grid_equivalents, arr_sizes[1].T, label="SparseDR", color=stage_colors[3])
 
 # ax.set_xlabel("Iterations")
-ax.set_ylabel("Size (MB)", fontsize=14)
+ax.set_ylabel("Size (MB) ⟵", fontsize=14)
 ax.set_yscale("log", base=2)
 handles, labels = ax.get_legend_handles_labels()
 ax.legend(fontsize=14)
@@ -148,7 +148,7 @@ plt.savefig("figures/size_comp.png")
 #Print PSNR bar plot
 models = ("Armadillo", "Bunny", "Dragon", "Happy", "Nefertiti", "Teapot")
 method_psnr = {
-    'Relaxed Boundary': (28.65, 35., 31.0, 34.5, 35., 36),
+    'Relaxed Boundary': (28.7, 35., 31.0, 34.5, 28.4, 29.8),
     'SparseDR': (round(all_scene_infos["ArmadilloNew1024"]["scene_avg_psnr"], 1),
                  round(all_scene_infos[    "BunnyNew1024"]["scene_avg_psnr"], 1),
                  round(all_scene_infos[   "DragonNew1024"]["scene_avg_psnr"], 1),
@@ -166,12 +166,12 @@ itr = 0
 for attribute, measurement in method_psnr.items():
     offset = width * multiplier
     rects = ax.bar(x + offset, measurement, width, label=attribute, color=stage_colors[itr])
-    ax.bar_label(rects, padding=2, fontsize=12, fmt="%g")
+    ax.bar_label(rects, padding=2, fontsize=12, fmt=("  %g" if itr else "%g  "))
     multiplier += 1
     itr += 3
 
 # Add some text for labels, title and custom x-axis tick labels, etc.
-ax.set_ylabel('PSNR (dB)', fontsize=14)
+ax.set_ylabel('PSNR (dB) ⟶', fontsize=14)
 # ax.set_title('Penguin attributes by species')
 ax.set_xticks(x + width)
 ax.set_xticklabels(models, fontsize=14)
