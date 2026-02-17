@@ -6,13 +6,13 @@ grid_equivalents = ('32³', '64³', '128³', '256³', '512³')
 
 image_size = "(1024x1024)"
 stage_times = {
-    'Rendering': np.array([440.84, 476.96, 516.15, 668.85, 1169.08]),
+    'Gradient evaluation': np.array([440.84, 476.96, 516.15, 668.85, 1169.08]),
     'Regularization': np.array([1, 1, 10, 10, 10]),
     'Optimizer': np.array([2.34,  2.44, 2.46, 2.57, 6.26]),
     'Redistancing': np.array([6.23, 6.19, 7.38, 14.54, 45.15]),
 }
 stage_times_ref = {
-    'Rendering': np.array([1609.54,1616.62,1613.52,1620.31, 1660.60]),
+    'Gradient evaluation': np.array([1609.54,1616.62,1613.52,1620.31, 1660.60]),
     'Regularization': np.array([4.77 ,3.32,3.38,4.23 ,2.46]),
     'Optimizer': np.array([1.93,1.11,1.18,2.03,3.85]),
     'Redistancing': np.array([171.22,186.05,197.84,254.95,527.85]),
