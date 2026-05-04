@@ -5,8 +5,8 @@
 % These are the instructions for authors for IJCAI--ECAI 26.
 
 \documentclass{article}
-\pdfpagewidth=8.5in
-\pdfpageheight=11in
+%\pdfpagewidth=8.5in
+%\pdfpageheight=11in
 
 % The file ijcai26.sty is a copy from ijcai22.sty
 % The file ijcai22.sty is NOT the same as previous years'
@@ -67,9 +67,9 @@
 
 % Please leave this \pdfinfo block untouched both for the submission and
 % Camera Ready Copy. Do not include Title and Author information in the pdfinfo section
-\pdfinfo{
-/TemplateVersion (IJCAI.2026.0)
-}
+%\pdfinfo{
+%/TemplateVersion (IJCAI.2026.0)
+%}
 
 \title{SparseDR: Differentiable Rendering of Sparse Signed Distance Fields}
 
@@ -88,9 +88,10 @@
 Alexey Budak$^{1}$
 \and
 Albert Garifullin$^1$\and
-Vladimir Frolov$^{1}$
+Vladimir Frolov$^{2}$
 \affiliations
 $^1$Lomonosov Moscow State University\\
+$^2$Institute of Artificial Intelligence, Lomonosov Moscow State University\\
 \emails % usually included
 \{ alexey.budak, albert.garifullin, vladimir.frolov \}@graphics.cs.msu.ru
 }
@@ -244,6 +245,10 @@ The upsampling step starts with SBS sparsification. During this stage, only the 
 
     In this work, we present SparseDR, an SDF-based differentiable rendering method using sparse SDF representations. Building on \cite{DRSDF24} as our baseline, we leverage SBS advantages to outperform the original approach while reducing memory usage by an order of magnitude. Future work will focus on performance improvements. We believe the current implementation offers substantial potential for efficiency gains via more accurate gradient computation and reduced per-pixel samples.
 
+
+\section{Acknowlegements}
+
+Alexey Budak and Albert Garifullin was supported by the The Ministry of Economic Development of the Russian Federation in accordance with the subsidy agreement (agreement identifier 000000C313925P4H0002; grant No 139-15-2025-012).
 
 %% The file named.bst is a bibliography style file for BibTeX 0.99c
 \bibliographystyle{named}
