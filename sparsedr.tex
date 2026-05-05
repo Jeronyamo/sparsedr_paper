@@ -126,7 +126,7 @@ The signed distance function (SDF) provides a continuous implicit representation
 
 \section{Proposed Method}
 
-    SparseDR uses the Sparse Brick Set (SBS) proposed in \cite{soderlund2022ray}, a hybrid of hierarchical and regular representations (Figure \ref{fig:header}). The entire scene is encoded as a BVH, while its leaves store small regular SDF grids, for example, 4×4×4 voxels. For gradient computation, we adapt the relaxed boundary method from \cite{DRSDF24}, which we refer to as our baseline.
+    SparseDR uses the Sparse Brick Set (SBS) proposed in \cite{soderlund2022ray}, a hybrid of hierarchical and regular representations (Figure \ref{fig:header}). The entire scene is encoded as a Bounding Volume Hierarchy (BVH); its leaves store small regular SDF grids, for example, 4×4×4 voxels. For gradient computation, we adapt the relaxed boundary method from \cite{DRSDF24}, which we refer to as our baseline.
     
     \begin{figure}[t]
     	\centering

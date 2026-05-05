@@ -46,7 +46,7 @@ for i, stage in enumerate(stage_times.items()):
 
 # ax.set_title('Average time of 1 iteration ' + image_size)
 # ax.set_xlabel("Equivalent grid size")
-ax.set_ylabel("⟵ Time (ms)", fontsize=14)
+ax.set_ylabel("⟵ Average time (ms)", fontsize=14)
 ax.set_xticks(range(len(grid_equivalents)))
 ax.set_xticklabels(grid_equivalents, fontsize=14)
 ax.set_yticks(range(0, 2501, 500))
@@ -148,7 +148,7 @@ plt.savefig("figures/size_comp.png")
 #Print PSNR bar plot
 models = ("Armadillo", "Bunny", "Dragon", "Happy", "Nefertiti", "Teapot")
 method_psnr = {
-    'Relaxed Boundary': (28.7, 35., 31.0, 34.5, 28.4, 29.8),
+    'Relaxed Boundary': (28.7, 35.0, 31.0, 34.5, 28.4, 29.8),
     'SparseDR': (round(all_scene_infos["ArmadilloNew1024"]["scene_avg_psnr"], 1),
                  round(all_scene_infos[    "BunnyNew1024"]["scene_avg_psnr"], 1),
                  round(all_scene_infos[   "DragonNew1024"]["scene_avg_psnr"], 1),
@@ -156,6 +156,12 @@ method_psnr = {
                  round(all_scene_infos["NefertitiNew1024"]["scene_avg_psnr"], 1),
                  round(all_scene_infos[   "TeapotNew1024"]["scene_avg_psnr"], 1)),
 }
+print((round(all_scene_infos["ArmadilloNew1024"]["scene_avg_psnr"], 1),
+                 round(all_scene_infos[    "BunnyNew1024"]["scene_avg_psnr"], 1),
+                 round(all_scene_infos[   "DragonNew1024"]["scene_avg_psnr"], 1),
+                 round(all_scene_infos[    "HappyNew1024"]["scene_avg_psnr"], 1),
+                 round(all_scene_infos["NefertitiNew1024"]["scene_avg_psnr"], 1),
+                 round(all_scene_infos[   "TeapotNew1024"]["scene_avg_psnr"], 1)))
 
 x = np.arange(len(models))  # the label locations
 width = 0.25  # the width of the bars
@@ -171,7 +177,7 @@ for attribute, measurement in method_psnr.items():
     itr += 3
 
 # Add some text for labels, title and custom x-axis tick labels, etc.
-ax.set_ylabel('PSNR (dB) ⟶', fontsize=14)
+ax.set_ylabel('Peak Signal-to-Noise Ratio (dB) ⟶', fontsize=14)
 # ax.set_title('Penguin attributes by species')
 ax.set_xticks(x + width)
 ax.set_xticklabels(models, fontsize=14)
