@@ -2,6 +2,10 @@ sparsedr.*
 !sparsedr.tex
 !sparsedr.bib
 
+sparsedr_ru.*
+!sparsedr_ru.tex
+!sparsedr_ru.bib
+
 ijcai26.*
 !ijcai26.tex
 !ijcai26.bib
