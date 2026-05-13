@@ -5,8 +5,8 @@
 % These are the instructions for authors for IJCAI--ECAI 26.
 
 \documentclass{article}
-%\pdfpagewidth=8.5in
-%\pdfpageheight=11in
+\pdfpagewidth=8.5in
+\pdfpageheight=11in
 
 % The file ijcai26.sty is a copy from ijcai22.sty
 % The file ijcai22.sty is NOT the same as previous years'
@@ -67,9 +67,9 @@
 
 % Please leave this \pdfinfo block untouched both for the submission and
 % Camera Ready Copy. Do not include Title and Author information in the pdfinfo section
-%\pdfinfo{
-%/TemplateVersion (IJCAI.2026.0)
-%}
+\pdfinfo{
+/TemplateVersion (IJCAI.2026.0)
+}
 
 \title{SparseDR: Differentiable Rendering of Sparse Signed Distance Fields}
 
@@ -102,42 +102,42 @@ $^2$Institute for Artificial Intelligence, Lomonosov Moscow State University\\
 \maketitle
 
 \begin{abstract}
-	We present SparseDR, a novel differentiable rendering algorithm designed for sparse representations based on Signed Distance Fields (SDF). We leverage the Sparse Brick Set representation and propose an adaptation of redistancing for sparse SDFs. This enables SparseDR to surpass existing works in accuracy of surface reconstruction by increasing the effective resolution of the SDF representation. SparseDR is efficiently implemented in C++ and Vulkan, achieving several times shorter reconstruction time than other methods.
+    We present SparseDR, a novel differentiable rendering algorithm designed for sparse representations based on Signed Distance Fields (SDF). We leverage the Sparse Brick Set representation and propose an adaptation of redistancing for sparse SDFs. This enables SparseDR to surpass existing works in accuracy of surface reconstruction by increasing the effective resolution of the SDF representation. SparseDR is efficiently implemented in C++ and Vulkan, achieving several times shorter reconstruction time than other methods.
 \end{abstract}
 
 \section{Introduction}
 
-The signed distance field (SDF) provides a continuous implicit representation of geometry, defining the shortest Euclidean distance from any point in space to the nearest surface, with the sign indicating interior and exterior regions. It has proven to be a convenient shape representation for differentiable rendering, allowing robust and relatively simple gradient-based optimization~\cite{DRSDF24}.
+The signed distance field (SDF) provides a continuous implicit representation of geometry, defining the shortest Euclidean distance from any point in space to the nearest surface, with the sign indicating interior and exterior regions. It has proven to be a convenient shape representation for differentiable rendering, allowing robust and relatively simple gradient-based optimization \cite{DRSDF24}.
   
   In an SDF-based differentiable rendering, each gradient descent step updates the distance values at grid cells, so the grid no longer strictly satisfies the SDF property. To address this issue, existing methods typically apply \textit{redistancing} -- a process that recomputes grid values so that each cell stores the correct distance to the surface \cite{DETRIXHE201346}. This makes SDF-based differentiable rendering on sparse data structures non-trivial, so all existing methods rely on regular grids. Unfortunately, this approach results in high memory and computational costs, while the reconstruction accuracy remains limited by the maximum grid resolution. Our work proposes a solution to this problem, alleviating limitations through better data structures and sampling techniques: 
   
   \begin{itemize}
-  	\item We propose an adaptation of SDF-based differentiable rendering to a sparse
-  	data structure, which increases the effective resolution of the SDF representation
-  	and thereby improves the surface reconstruction accuracy.
-  	\item We adapt redistancing to sparse data structures by separating it into two distinct algorithms: local and global redistancing.  
+      \item We propose an adaptation of SDF-based differentiable rendering to a sparse
+      data structure, which increases the effective resolution of the SDF representation
+      and thereby improves the surface reconstruction accuracy.
+      \item We adapt redistancing to sparse data structures by separating it into two distinct algorithms: local and global redistancing.  
   \end{itemize}
 
 \section{Related Work}
     
    The representation of SDF on a regular grid in existing works \cite{DRSDF22,DRSDF24,ManyWorld25} has three major limitations: (1) significant memory consumption, especially when using automatic differentiation frameworks such as DrJit \cite{drjit}
-   or PyTorch \cite{pytorch}; (2) slow ray–surface intersection based on sphere tracing; (3) an expensive redistancing algorithm that propagates modified SDF values across the entire grid. Our work shows how these components -- data structure, ray intersection, and redistancing -- can be joined together in an efficient manner.
+   or PyTorch \cite{pytorch}; (2) slow ray-surface intersection based on sphere tracing; (3) an expensive redistancing algorithm that propagates modified SDF values across the entire grid. Our work shows how these components -- data structure, ray intersection, and redistancing -- can be joined together in an efficient manner.
    
 
 \section{Proposed Method}
 
-    SparseDR uses the Sparse Brick Set (SBS) proposed in \cite{soderlund2022ray}, a hybrid of hierarchical and regular representations (Figure \ref{fig:header}). The entire scene is encoded as a Bounding Volume Hierarchy (BVH); its leaves store small regular SDF grids, for example, 4×4×4 voxels. For gradient computation, we adapt the relaxed boundary method from \cite{DRSDF24}, which we refer to as our baseline.
+    SparseDR uses the Sparse Brick Set (SBS) proposed in \cite{soderlund2022ray}, a hybrid of hierarchical and regular representations (Figure \ref{fig:header}). The entire scene is encoded as a Bounding Volume Hierarchy (BVH); its leaves store small regular SDF grids, for example, 4x4x4 voxels. For gradient computation, we adapt the relaxed boundary method from \cite{DRSDF24}, which we refer to as our baseline.
     
     \begin{figure}[t]
-    	\centering
-    	\includegraphics[width=\columnwidth,keepaspectratio]{figures/header.eps}
-    	\caption{Existing methods (left) use a dense SDF grid to represent the surface, sphere tracing for ray-scene intersection, and uniform image sampling when casting rays. SparseDR (right) uses Sparse Brick Set, where a ray intersects each brick on its way until it hits the surface. It also uses adaptive sampling for a boundary integral, placing more rays in the relaxed boundary area. The red and the blue colors depict positive and negative SDF values, respectively.}
-    	\label{fig:header}
+        \centering
+        \includegraphics[width=\columnwidth,keepaspectratio]{figures/header.eps}
+        \caption{Existing methods (left) use a dense SDF grid to represent the surface, sphere tracing for ray-scene intersection, and uniform image sampling when casting rays. SparseDR (right) uses Sparse Brick Set, where a ray intersects each brick on its way until it hits the surface. It also uses adaptive sampling for a boundary integral, placing more rays in the relaxed boundary area. The red and the blue colors depict positive and negative SDF values, respectively.}
+        \label{fig:header}
     \end{figure}
 
 The proposed optimization process consists of several epochs with multiple gradient descent steps in each. At the beginning, the distance field is initialized with a sphere defined on a low-resolution grid (e.g., $32^3$). At each iteration, we estimate the gradients and update the distance values using a gradient descent step followed by a regularization and local redistancing (see Figure \ref{fig:redist}). At the end of each epoch, two steps are executed: upsampling and global redistancing. After the last epoch, only global redistancing is performed.
 
-\textbf{Gradient Evaluation.} The key feature of SparseDR is the transition from a regular grid to a Sparse Brick Set. A BVH tree is constructed for the SBS, with each leaf node storing a single brick. Instead of sphere tracing, we have adapted a faster Newton method for ray–SDF intersection~\cite{soderlund2022ray}. A ray first traverses the BVH; if an intersection with a leaf node is found, it then intersects the voxels of the brick. The ray traverses each brick along its path until it hits the surface or there are no bricks left. The Newton method was modified to search for the relaxed boundary points: within the voxel, a potential relaxed boundary point is found as the root of a quadratic equation, after which the SDF value at the point is checked to be below the relaxed epsilon. The case when the local minimum occurs on the voxel boundary is handled separately.
+\textbf{Gradient Evaluation.} The key feature of SparseDR is the transition from a regular grid to a Sparse Brick Set. A BVH tree is constructed for the SBS, with each leaf node storing a single brick. Instead of sphere tracing, we have adapted a faster Newton method for ray-SDF intersection \cite{soderlund2022ray}. A ray first traverses the BVH; if an intersection with a leaf node is found, it then intersects the voxels of the brick. The ray traverses each brick along its path until it hits the surface or there are no bricks left. The Newton method was modified to search for the relaxed boundary points: within the voxel, a potential relaxed boundary point is found as the root of a quadratic equation, after which the SDF value at the point is checked to be below the relaxed epsilon. The case when the local minimum occurs on the voxel boundary is handled separately.
 
 SparseDR is implemented in C++ and Vulkan and does not use automatic differentiation, i.e., all derivatives were obtained analytically. In the shader, we accumulate the pixel color in batches of 16 samples, storing the information about voxels the samples hit in a fixed-size array. Every 16 samples, or after the last one, the gradients are accumulated using atomic operations.
 
@@ -152,7 +152,7 @@ SparseDR optionally uses an additional pass that only samples pixels containing 
 \end{figure}
 
 \textbf{Local Redistancing.}
-We implemented two versions of redistancing: local and global (Figure \ref{fig:redist}). For the proposed method, the distances in the bricks without a surface are not required to strictly satisfy the SDF property during optimization. Therefore, the local version is applied at each iteration, recomputing distances only within the bricks containing the surface. In practice, the local redistancing is sufficient, since our ray–surface intersection method relies solely on the distances within the traversed bricks. However, this approach may cause distance inconsistencies between adjacent bricks, so we perform global redistancing at the end of each epoch.
+We implemented two versions of redistancing: local and global (Figure \ref{fig:redist}). For the proposed method, the distances in the bricks without a surface are not required to strictly satisfy the SDF property during optimization. Therefore, the local version is applied at each iteration, recomputing distances only within the bricks containing the surface. In practice, the local redistancing is sufficient, since our ray-surface intersection method relies solely on the distances within the traversed bricks. However, this approach may cause distance inconsistencies between adjacent bricks, so we perform global redistancing at the end of each epoch.
 
 
 \begin{figure}[t]
@@ -168,18 +168,18 @@ The upsampling step begins with SBS sparsification. At this stage, only the bric
 
 \section{Experiments}
 
-Experiments with the baseline were conducted on the official implementation's original setup \cite{DRSDF24Repo}. The only modifications are the number of viewpoints, the batch size, and the epoch sizes. For the consistency across experiments, an identical lighting setup was used: two directional light sources, (1,1,1) and (-1,-1,-1), and the ambient light. The experiments were carried out on six models. 4 models are from the Stanford 3D scanning repository: Armadillo, Asian Dragon, Stanford Bunny, and Happy Buddha. The other two are Nefertiti scan \cite{nefertitihack} and the Utah Teapot. Reconstruction used 16 viewpoints, uniformly distributed over a sphere around the scene, generated by the algorithm from \cite{DRSDF24Repo}. The batch size is 4 viewpoints; the image resolution is 1024×1024.
+Experiments with the baseline were conducted on the official implementation's original setup \cite{DRSDF24Repo}. The only modifications are the number of viewpoints, the batch size, and the epoch sizes. For the consistency across experiments, an identical lighting setup was used: two directional light sources, (1,1,1) and (-1,-1,-1), and the ambient light. The experiments were carried out on six models. 4 models are from the Stanford 3D scanning repository: Armadillo, Asian Dragon, Stanford Bunny, and Happy Buddha. The other two are Nefertiti scan \cite{nefertitihack} and the Utah Teapot. Reconstruction used 16 viewpoints, uniformly distributed over a sphere around the scene, generated by the algorithm from \cite{DRSDF24Repo}. The batch size is 4 viewpoints; the image resolution is 1024x1024.
 
 The full optimization process comprised 1000 steps, with upsampling applied at steps 200, 400, 600, 700, 800, and 900. Hardware configuraiton is AMD Ryzen 9 7950X CPU and NVIDIA GeForce RTX 4090 GPU. Some reconstruction examples are shown in Figure \ref{fig:collage}.
 
 \begin{figure}[t]
     \centering
     \includegraphics[width=\columnwidth,keepaspectratio]{figures/time_1iter.eps}
-    \caption{ The average execution time per iteration. For each grid size, the left bar represents the baseline, and the right bar shows SparseDR for the SBS with equivalent resolution. }
+    \caption{ The average execution time per iteration for the first five epochs. For each grid size, the left bar depicts the baseline, and the right bar shows SparseDR for the SBS with equivalent resolution. }
     \label{fig:iter_time}
 \end{figure}
 
-\begin{figure}[h]
+\begin{figure}[ht]
     \centering
     \includegraphics[width=\columnwidth,keepaspectratio]{figures/psnr_comp.eps}
     \caption{ Average PSNR values across viewpoints for models. }
@@ -191,7 +191,7 @@ Figure \ref{fig:iter_time} shows the average reconstruction time across all mode
 
 \begin{table}
     \centering
-    \begin{tabular}{cccccc} % 1, 2, 4, 5, 7,
+    \begin{tabular}{cccccc}
         \toprule
         Representation & $64^3$ & $128^3$ & $512^3$ & $1024^3$ & $2048^3$  \\
         \midrule[\heavyrulewidth]
@@ -221,11 +221,6 @@ Figure \ref{fig:iter_time} shows the average reconstruction time across all mode
 \section{Conclusion}
 
 In this work, we introduce SparseDR, an SDF-based differentiable rendering method that leverages sparse SDF representations. Building on the \cite{DRSDF24}, we exploit the strengths of Sparse Brick Sets to surpass the baseline while reducing memory consumption by an order of magnitude. Future work will focus on improving performance. We believe that the current approach holds the potential for further efficiency gains, particularly through more accurate gradient estimation and a reduction in per-pixel sampling.
-
-
-\section*{Ethical Statement}
-
-There are no ethical issues.
 
 \section*{Acknowledgments}
 

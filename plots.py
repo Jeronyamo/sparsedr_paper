@@ -1,8 +1,11 @@
+import matplotlib
 import matplotlib.pyplot as plt
 import numpy as np
 
+matplotlib.rcParams['pdf.fonttype'] = 42
+matplotlib.rcParams['ps.fonttype'] = 42
 # Print barplot with iteration times
-grid_equivalents = ('32³', '64³', '128³', '256³', '512³')
+grid_equivalents = ('32', '64', '128', '256', '512')
 
 image_size = "(1024x1024)"
 stage_times = {
